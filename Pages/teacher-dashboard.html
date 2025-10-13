@@ -321,7 +321,121 @@
     <script src="../scripts/auth.js"></script>
     
     <script>
-      // Sample student data with game completions
+      // Check login status and user type when page loads
+      document.addEventListener('DOMContentLoaded', () => {
+        if (!window.Auth.isLoggedIn()) {
+          document.body.innerHTML = `
+            <div class="container py-5">
+              <div class="row justify-content-center">
+                <div class="col-md-6">
+                  <div class="alert alert-warning text-center">
+                    <h4 class="alert-heading">Login Required</h4>
+                    <p>You must be logged in to access the teacher dashboard.</p>
+                    <hr>
+                    <a href="./login.html" class="btn btn-primary">Go to Login</a>
+                    <a href="./home.html" class="btn btn-secondary ms-2">Back to Home</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          return;
+        }
+        
+        const currentUser = window.Auth.getCurrentUser();
+        if (currentUser.type !== 'teacher') {
+          document.body.innerHTML = `
+            <div class="container py-5">
+              <div class="row justify-content-center">
+                <div class="col-md-6">
+                  <div class="alert alert-danger text-center">
+                    <h4 class="alert-heading">Access Denied</h4>
+                    <p>Only teachers can access the teacher dashboard.</p>
+                    <hr>
+                    <a href="./home.html" class="btn btn-primary">Back to Home</a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          `;
+          return;
+        }
+        
+        // User is a logged-in teacher, load the dashboard
+        loadTeacherDashboard();
+      });
+      
+      // Load teacher dashboard with real data
+      async function loadTeacherDashboard() {
+        try {
+          // Update dashboard title with teacher's name
+          const currentUser = window.Auth.getCurrentUser();
+          document.getElementById('dashboardTitle').textContent = `Welcome, ${currentUser.TeacherName}`;
+          
+          // Load real student data from API
+          const students = await window.Auth.getAllStudents();
+          console.log('Loaded students:', students);
+          
+          // Update the global students variable with real data
+          window.students = students.map(student => ({
+            id: student.StudentID,
+            name: student.StudentName,
+            email: `${student.StudentID}@school.edu`, // Generate email from ID
+            level: getPerformanceLevel(student),
+            score: getAverageScore(student),
+            gamesCompleted: getCompletedGamesCount(student),
+            lastActive: "Recently", // We don't have last active data
+            progress: getAverageScore(student),
+            gameCompletions: [
+              { game: "Math Challenge", completed: student.StudentScoreGame1 > 0, score: student.StudentScoreGame1 || 0, date: "Recent" },
+              { game: "Science Lab", completed: student.StudentScoreGame2 > 0, score: student.StudentScoreGame2 || 0, date: "Recent" },
+              { game: "Robot Beeper Challenge", completed: student.StudentScoreGame3 > 0, score: student.StudentScoreGame3 || 0, date: "Recent" },
+              { game: "Labyrinth of Lies", completed: student.StudentScoreGame4 > 0, score: student.StudentScoreGame4 || 0, date: "Recent" },
+              { game: "Future Game", completed: student.StudentScoreGame5 > 0, score: student.StudentScoreGame5 || 0, date: "Recent" }
+            ]
+          }));
+          
+          // Initialize the dashboard with real data
+          initializeDashboard();
+          
+        } catch (error) {
+          console.error('Error loading teacher dashboard:', error);
+          document.getElementById('dashboardTitle').textContent = 'Teacher Dashboard - Error Loading Data';
+        }
+      }
+      
+      // Helper functions for student data processing
+      function getPerformanceLevel(student) {
+        const avgScore = getAverageScore(student);
+        if (avgScore >= 80) return 'excellent';
+        if (avgScore >= 60) return 'good';
+        return 'needs-help';
+      }
+      
+      function getAverageScore(student) {
+        const scores = [
+          student.StudentScoreGame1 || 0,
+          student.StudentScoreGame2 || 0,
+          student.StudentScoreGame3 || 0,
+          student.StudentScoreGame4 || 0,
+          student.StudentScoreGame5 || 0
+        ].filter(score => score > 0);
+        
+        if (scores.length === 0) return 0;
+        return Math.round(scores.reduce((sum, score) => sum + score, 0) / scores.length);
+      }
+      
+      function getCompletedGamesCount(student) {
+        return [
+          student.StudentScoreGame1,
+          student.StudentScoreGame2,
+          student.StudentScoreGame3,
+          student.StudentScoreGame4,
+          student.StudentScoreGame5
+        ].filter(score => score > 0).length;
+      }
+      
+      // Sample student data with game completions (fallback data)
       const students = [
         { 
           id: 1, name: "Alice Johnson", email: "alice@school.edu", level: "excellent", score: 95, 
