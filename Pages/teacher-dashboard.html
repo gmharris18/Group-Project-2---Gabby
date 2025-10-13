@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Teacher Dashboard - BridgeEd</title>
+
+    <!-- Bootstrap CSS -->
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+      integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
+      crossorigin="anonymous"
+    />
+
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="../styles/main.css" />
+    
+    <style>
+      .dashboard-header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 2rem 0;
+        margin-bottom: 2rem;
+      }
+      
+      .stat-card {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        border-left: 4px solid #0d6efd;
+        transition: transform 0.2s;
+      }
+      
+      .stat-card:hover {
+        transform: translateY(-2px);
+      }
+      
+      .stat-card.success {
+        border-left-color: #198754;
+      }
+      
+      .stat-card.warning {
+        border-left-color: #ffc107;
+      }
+      
+      .stat-card.danger {
+        border-left-color: #dc3545;
+      }
+      
+      .stat-number {
+        font-size: 2.5rem;
+        font-weight: bold;
+        color: #0d6efd;
+      }
+      
+      .stat-label {
+        color: #6c757d;
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+      }
+      
+      .student-card {
+        background: white;
+        border-radius: 8px;
+        padding: 1rem;
+        margin-bottom: 1rem;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-left: 3px solid #0d6efd;
+      }
+      
+      .student-card:hover {
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+      }
+      
+      .progress-ring {
+        width: 60px;
+        height: 60px;
+        margin: 0 auto;
+      }
+      
+      .chart-container {
+        background: white;
+        border-radius: 12px;
+        padding: 1.5rem;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 2rem;
+      }
+      
+      .filter-tabs {
+        background: #f8f9fa;
+        border-radius: 8px;
+        padding: 0.5rem;
+        margin-bottom: 1rem;
+      }
+      
+      .filter-tab {
+        background: none;
+        border: none;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        margin: 0 0.25rem;
+        transition: all 0.2s;
+      }
+      
+      .filter-tab.active {
+        background: #0d6efd;
+        color: white;
+      }
+      
+      .search-box {
+        border-radius: 25px;
+        border: 2px solid #e9ecef;
+        padding: 0.5rem 1rem;
+        transition: border-color 0.2s;
+      }
+      
+      .search-box:focus {
+        border-color: #0d6efd;
+        box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+      <div class="container">
+        <a class="navbar-brand" href="./home.html">BridgeEd</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="./home.html">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="./game.html">Games</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="./ranking.html">Rankings</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="./profile.html">Profile</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link active" href="./teacher-dashboard.html">Teacher Dashboard</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="./login.html" id="authLink">Logout</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
+    <!-- Dashboard Header -->
+    <div class="dashboard-header">
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-8">
+            <h1 class="display-5 mb-2" id="dashboardTitle">Teacher Dashboard</h1>
+            <p class="lead mb-0" id="dashboardSubtitle">Track student progress and manage your classroom</p>
+          </div>
+          <div class="col-md-4 text-end">
+            <button class="btn btn-light me-2" onclick="exportData()">📊 Export Data</button>
+            <button class="btn btn-outline-light" onclick="refreshData()">🔄 Refresh</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+      <!-- Statistics Cards -->
+      <div class="row mb-4">
+        <div class="col-md-3">
+          <div class="stat-card">
+            <div class="stat-number" id="totalStudents">24</div>
+            <div class="stat-label">Total Students</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card success">
+            <div class="stat-number" id="activeStudents">18</div>
+            <div class="stat-label">Active This Week</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card warning">
+            <div class="stat-number" id="avgScore">87%</div>
+            <div class="stat-label">Average Score</div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="stat-card danger">
+            <div class="stat-number" id="needsHelp">3</div>
+            <div class="stat-label">Need Help</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Charts Row -->
+      <div class="row mb-4">
+        <div class="col-lg-8">
+          <div class="chart-container">
+            <h5 class="mb-3">📈 Student Progress Over Time</h5>
+            <canvas id="progressChart"></canvas>
+          </div>
+        </div>
+        <div class="col-lg-4">
+          <div class="chart-container">
+            <h5 class="mb-3">🎯 Game Completion Rates</h5>
+            <canvas id="completionChart"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Student Management -->
+      <div class="row">
+        <div class="col-12">
+          <div class="chart-container">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="mb-0">👥 Student Management</h5>
+              <div class="d-flex gap-2">
+                <button class="btn btn-success btn-sm" onclick="showAddStudentModal()">➕ Add Student</button>
+                <input type="text" class="form-control search-box" id="studentSearch" placeholder="Search students..." style="width: 200px;">
+                <div class="filter-tabs">
+                  <button class="filter-tab active" data-filter="all">All</button>
+                  <button class="filter-tab" data-filter="excellent">Excellent</button>
+                  <button class="filter-tab" data-filter="good">Good</button>
+                  <button class="filter-tab" data-filter="needs-help">Needs Help</button>
+                </div>
+              </div>
+            </div>
+            
+            <div id="studentsList">
+              <!-- Student cards will be populated here -->
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Add Student Modal -->
+    <div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="addStudentModalLabel">Add New Student</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body">
+            <form id="addStudentForm">
+              <div class="mb-3">
+                <label for="studentName" class="form-label">Student Name</label>
+                <input type="text" class="form-control" id="studentName" required>
+              </div>
+              <div class="mb-3">
+                <label for="studentEmail" class="form-label">Email</label>
+                <input type="email" class="form-control" id="studentEmail" required>
+              </div>
+              <div class="mb-3">
+                <label for="studentId" class="form-label">Student ID</label>
+                <input type="text" class="form-control" id="studentId" required>
+              </div>
+              <div class="mb-3">
+                <label for="studentPassword" class="form-label">Password</label>
+                <input type="password" class="form-control" id="studentPassword" required>
+              </div>
+            </form>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="addStudent()">Add Student</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Student Details Modal -->
+    <div class="modal fade" id="studentDetailsModal" tabindex="-1" aria-labelledby="studentDetailsModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="studentDetailsModalLabel">Student Details</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body" id="studentDetailsContent">
+            <!-- Student details will be populated here -->
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            <button type="button" class="btn btn-danger" id="deleteStudentBtn" onclick="deleteStudent()">Delete Student</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bootstrap JS bundle -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
+    <!-- Custom JS -->
+    <script src="../scripts/main.js"></script>
+    <script src="../scripts/auth.js"></script>
+    
+    <script>
+      // Sample student data with game completions
+      const students = [
+        { 
+          id: 1, name: "Alice Johnson", email: "alice@school.edu", level: "excellent", score: 95, 
+          gamesCompleted: 4, lastActive: "2 hours ago", progress: 95,
+          gameCompletions: [
+            { game: "Math Challenge", completed: true, score: 95, date: "2024-01-15" },
+            { game: "Word Builder", completed: true, score: 88, date: "2024-01-16" },
+            { game: "Geography Quiz", completed: true, score: 92, date: "2024-01-17" },
+            { game: "Robot Beeper Challenge", completed: true, score: 100, date: "2024-01-18" },
+            { game: "History Timeline", completed: false, score: 0, date: null }
+          ]
+        },
+        { 
+          id: 2, name: "Bob Smith", email: "bob@school.edu", level: "good", score: 78, 
+          gamesCompleted: 3, lastActive: "1 day ago", progress: 78,
+          gameCompletions: [
+            { game: "Math Challenge", completed: true, score: 75, date: "2024-01-14" },
+            { game: "Word Builder", completed: true, score: 82, date: "2024-01-15" },
+            { game: "Geography Quiz", completed: true, score: 77, date: "2024-01-16" },
+            { game: "Robot Beeper Challenge", completed: false, score: 0, date: null },
+            { game: "History Timeline", completed: false, score: 0, date: null }
+          ]
+        },
+        { 
+          id: 3, name: "Charlie Brown", email: "charlie@school.edu", level: "needs-help", score: 45, 
+          gamesCompleted: 1, lastActive: "3 days ago", progress: 45,
+          gameCompletions: [
+            { game: "Math Challenge", completed: true, score: 45, date: "2024-01-12" },
+            { game: "Word Builder", completed: false, score: 0, date: null },
+            { game: "Geography Quiz", completed: false, score: 0, date: null },
+            { game: "Robot Beeper Challenge", completed: false, score: 0, date: null },
+            { game: "History Timeline", completed: false, score: 0, date: null }
+          ]
+        },
+        { 
+          id: 4, name: "Diana Prince", email: "diana@school.edu", level: "excellent", score: 92, 
+          gamesCompleted: 5, lastActive: "30 minutes ago", progress: 92,
+          gameCompletions: [
+            { game: "Math Challenge", completed: true, score: 95, date: "2024-01-15" },
+            { game: "Word Builder", completed: true, score: 90, date: "2024-01-16" },
+            { game: "Geography Quiz", completed: true, score: 88, date: "2024-01-17" },
+            { game: "Robot Beeper Challenge", completed: true, score: 95, date: "2024-01-18" },
+            { game: "History Timeline", completed: true, score: 92, date: "2024-01-19" }
+          ]
+        },
+        { 
+          id: 5, name: "Eve Wilson", email: "eve@school.edu", level: "good", score: 81, 
+          gamesCompleted: 3, lastActive: "4 hours ago", progress: 81,
+          gameCompletions: [
+            { game: "Math Challenge", completed: true, score: 85, date: "2024-01-14" },
+            { game: "Word Builder", completed: true, score: 78, date: "2024-01-15" },
+            { game: "Geography Quiz", completed: true, score: 80, date: "2024-01-16" },
+            { game: "Robot Beeper Challenge", completed: false, score: 0, date: null },
+            { game: "History Timeline", completed: false, score: 0, date: null }
+          ]
+        }
+      ];
+
+      let currentFilter = 'all';
+      let searchTerm = '';
+      let selectedStudentId = null;
+
+      // Initialize dashboard
+      function initDashboard() {
+        personalizeDashboard();
+        updateStats();
+        renderStudents();
+        initCharts();
+        setupEventListeners();
+      }
+
+      function personalizeDashboard() {
+        // Get current user from localStorage
+        const currentUser = JSON.parse(localStorage.getItem('bridgeEd_currentUser') || '{}');
+        
+        if (currentUser.name) {
+          // Update page title
+          document.title = `${currentUser.name}'s Classroom - BridgeEd`;
+          
+          // Update header title
+          const headerTitle = document.getElementById('dashboardTitle');
+          if (headerTitle) {
+            headerTitle.textContent = `${currentUser.name}'s Classroom`;
+          }
+          
+          // Update header subtitle
+          const headerSubtitle = document.getElementById('dashboardSubtitle');
+          if (headerSubtitle) {
+            headerSubtitle.textContent = `Welcome back, ${currentUser.name}! Track student progress and manage your classroom.`;
+          }
+          
+          // Update navbar brand
+          const navbarBrand = document.querySelector('.navbar-brand');
+          if (navbarBrand) {
+            navbarBrand.textContent = `${currentUser.name}'s BridgeEd`;
+          }
+
+        }
+      }
+
+      function updateStats() {
+        const totalStudents = students.length;
+        const activeStudents = students.filter(s => s.lastActive.includes('hour') || s.lastActive.includes('minutes')).length;
+        const avgScore = Math.round(students.reduce((sum, s) => sum + s.score, 0) / students.length);
+        const needsHelp = students.filter(s => s.level === 'needs-help').length;
+
+        document.getElementById('totalStudents').textContent = totalStudents;
+        document.getElementById('activeStudents').textContent = activeStudents;
+        document.getElementById('avgScore').textContent = avgScore + '%';
+        document.getElementById('needsHelp').textContent = needsHelp;
+      }
+
+      function renderStudents() {
+        const container = document.getElementById('studentsList');
+        let filteredStudents = students;
+
+        // Apply search filter
+        if (searchTerm) {
+          filteredStudents = filteredStudents.filter(s => 
+            s.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            s.email.toLowerCase().includes(searchTerm.toLowerCase())
+          );
+        }
+
+        // Apply level filter
+        if (currentFilter !== 'all') {
+          filteredStudents = filteredStudents.filter(s => s.level === currentFilter);
+        }
+
+        container.innerHTML = filteredStudents.map(student => `
+          <div class="student-card">
+            <div class="row align-items-center">
+              <div class="col-md-2">
+                <h6 class="mb-1">${student.name}</h6>
+                <small class="text-muted">${student.email}</small>
+              </div>
+              <div class="col-md-2">
+                <div class="progress" style="height: 20px;">
+                  <div class="progress-bar ${getProgressColor(student.progress)}" 
+                       style="width: ${student.progress}%"></div>
+                </div>
+                <small class="text-center d-block mt-1">${student.progress}%</small>
+              </div>
+              <div class="col-md-1">
+                <span class="badge ${getLevelBadgeClass(student.level)}">${getLevelText(student.level)}</span>
+              </div>
+              <div class="col-md-3">
+                <div class="d-flex flex-wrap gap-1">
+                  ${student.gameCompletions.map(game => `
+                    <span class="badge ${game.completed ? 'bg-success' : 'bg-secondary'}">
+                      ${game.completed ? '✅' : '⏳'} ${game.game.split(' ')[0]}
+                    </span>
+                  `).join('')}
+                </div>
+              </div>
+              <div class="col-md-2">
+                <small class="text-muted">${student.lastActive}</small>
+              </div>
+              <div class="col-md-2">
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="viewStudent(${student.id})">
+                  👁️ Details
+                </button>
+                <button class="btn btn-sm btn-outline-danger" onclick="confirmDeleteStudent(${student.id})">
+                  🗑️ Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+
+      function getProgressColor(progress) {
+        if (progress >= 80) return 'bg-success';
+        if (progress >= 60) return 'bg-warning';
+        return 'bg-danger';
+      }
+
+      function getLevelBadgeClass(level) {
+        const classes = {
+          'excellent': 'bg-success',
+          'good': 'bg-primary',
+          'needs-help': 'bg-danger'
+        };
+        return classes[level] || 'bg-secondary';
+      }
+
+      function getLevelText(level) {
+        const texts = {
+          'excellent': 'Excellent',
+          'good': 'Good',
+          'needs-help': 'Needs Help'
+        };
+        return texts[level] || 'Unknown';
+      }
+
+      function initCharts() {
+        // Progress Chart
+        const progressCtx = document.getElementById('progressChart').getContext('2d');
+        new Chart(progressCtx, {
+          type: 'line',
+          data: {
+            labels: ['Week 1', 'Week 2', 'Week 3', 'Week 4'],
+            datasets: [{
+              label: 'Average Score',
+              data: [65, 72, 78, 87],
+              borderColor: '#0d6efd',
+              backgroundColor: 'rgba(13, 110, 253, 0.1)',
+              tension: 0.4
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                display: false
+              }
+            }
+          }
+        });
+
+        // Completion Chart
+        const completionCtx = document.getElementById('completionChart').getContext('2d');
+        new Chart(completionCtx, {
+          type: 'doughnut',
+          data: {
+            labels: ['Completed', 'In Progress', 'Not Started'],
+            datasets: [{
+              data: [65, 25, 10],
+              backgroundColor: ['#198754', '#ffc107', '#dc3545']
+            }]
+          },
+          options: {
+            responsive: true,
+            plugins: {
+              legend: {
+                position: 'bottom'
+              }
+            }
+          }
+        });
+      }
+
+      function setupEventListeners() {
+        // Search functionality
+        document.getElementById('studentSearch').addEventListener('input', (e) => {
+          searchTerm = e.target.value;
+          renderStudents();
+        });
+
+        // Filter tabs
+        document.querySelectorAll('.filter-tab').forEach(tab => {
+          tab.addEventListener('click', (e) => {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            currentFilter = e.target.dataset.filter;
+            renderStudents();
+          });
+        });
+      }
+
+      function viewStudent(studentId) {
+        selectedStudentId = studentId;
+        const student = students.find(s => s.id === studentId);
+        
+        const gameCompletionsHTML = student.gameCompletions.map(game => `
+          <div class="row mb-2">
+            <div class="col-md-4">
+              <strong>${game.game}</strong>
+            </div>
+            <div class="col-md-2">
+              <span class="badge ${game.completed ? 'bg-success' : 'bg-secondary'}">
+                ${game.completed ? 'Completed' : 'Not Started'}
+              </span>
+            </div>
+            <div class="col-md-2">
+              <span class="badge ${game.completed ? 'bg-primary' : 'bg-secondary'}">
+                ${game.completed ? `${game.score}%` : 'N/A'}
+              </span>
+            </div>
+            <div class="col-md-4">
+              <small class="text-muted">${game.date || 'Not completed'}</small>
+            </div>
+          </div>
+        `).join('');
+
+        document.getElementById('studentDetailsContent').innerHTML = `
+          <div class="row mb-3">
+            <div class="col-md-6">
+              <h6>Student Information</h6>
+              <p><strong>Name:</strong> ${student.name}</p>
+              <p><strong>Email:</strong> ${student.email}</p>
+              <p><strong>Overall Score:</strong> ${student.score}%</p>
+              <p><strong>Last Active:</strong> ${student.lastActive}</p>
+            </div>
+            <div class="col-md-6">
+              <h6>Performance Summary</h6>
+              <p><strong>Games Completed:</strong> ${student.gamesCompleted}/5</p>
+              <p><strong>Performance Level:</strong> <span class="badge ${getLevelBadgeClass(student.level)}">${getLevelText(student.level)}</span></p>
+              <p><strong>Progress:</strong> ${student.progress}%</p>
+            </div>
+          </div>
+          <hr>
+          <h6>Game Completions</h6>
+          <div class="table-responsive">
+            <table class="table table-sm">
+              <thead>
+                <tr>
+                  <th>Game</th>
+                  <th>Status</th>
+                  <th>Score</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                ${student.gameCompletions.map(game => `
+                  <tr>
+                    <td>${game.game}</td>
+                    <td><span class="badge ${game.completed ? 'bg-success' : 'bg-secondary'}">${game.completed ? 'Completed' : 'Not Started'}</span></td>
+                    <td>${game.completed ? `${game.score}%` : 'N/A'}</td>
+                    <td>${game.date || 'Not completed'}</td>
+                  </tr>
+                `).join('')}
+              </tbody>
+            </table>
+          </div>
+        `;
+        
+        const modal = new bootstrap.Modal(document.getElementById('studentDetailsModal'));
+        modal.show();
+      }
+
+      function showAddStudentModal() {
+        document.getElementById('addStudentForm').reset();
+        const modal = new bootstrap.Modal(document.getElementById('addStudentModal'));
+        modal.show();
+      }
+
+      function addStudent() {
+        const name = document.getElementById('studentName').value.trim();
+        const email = document.getElementById('studentEmail').value.trim();
+        const studentId = document.getElementById('studentId').value.trim();
+        const password = document.getElementById('studentPassword').value;
+
+        if (!name || !email || !studentId || !password) {
+          alert('Please fill in all fields.');
+          return;
+        }
+
+        // Check if student ID already exists
+        if (students.find(s => s.id === parseInt(studentId))) {
+          alert('Student ID already exists. Please choose a different ID.');
+          return;
+        }
+
+        // Add new student
+        const newStudent = {
+          id: parseInt(studentId),
+          name: name,
+          email: email,
+          level: 'good',
+          score: 0,
+          gamesCompleted: 0,
+          lastActive: 'Just created',
+          progress: 0,
+          gameCompletions: [
+            { game: "Math Challenge", completed: false, score: 0, date: null },
+            { game: "Word Builder", completed: false, score: 0, date: null },
+            { game: "Geography Quiz", completed: false, score: 0, date: null },
+            { game: "Robot Beeper Challenge", completed: false, score: 0, date: null },
+            { game: "History Timeline", completed: false, score: 0, date: null }
+          ]
+        };
+
+        students.push(newStudent);
+        updateStats();
+        renderStudents();
+        
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
+        modal.hide();
+        
+        alert('Student added successfully!');
+      }
+
+      function confirmDeleteStudent(studentId) {
+        const student = students.find(s => s.id === studentId);
+        if (confirm(`Are you sure you want to delete ${student.name}? This action cannot be undone.`)) {
+          deleteStudent(studentId);
+        }
+      }
+
+      function deleteStudent() {
+        if (selectedStudentId) {
+          const index = students.findIndex(s => s.id === selectedStudentId);
+          if (index > -1) {
+            students.splice(index, 1);
+            updateStats();
+            renderStudents();
+            
+            // Close modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('studentDetailsModal'));
+            modal.hide();
+            
+            alert('Student deleted successfully!');
+          }
+        }
+      }
+
+      function exportData() {
+        alert('📊 Exporting student data...\n\nThis would generate a CSV file with all student progress data.');
+      }
+
+      function refreshData() {
+        alert('🔄 Refreshing data...\n\nThis would fetch the latest student progress from the server.');
+      }
+
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', initDashboard);
+
+      // Auth check
+      if (window.Auth) {
+        Auth.requireAuth('./login.html');
+      }
+    </script>
+  </body>
+</html>
+

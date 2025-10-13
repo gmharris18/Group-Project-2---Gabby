@@ -1,9 +1,10 @@
 // Custom JavaScript
 
-// Clear any old localStorage on page load (cleanup)
+// Initialize localStorage for BridgeEd
 (function() {
-  if (localStorage.length > 0) {
-    localStorage.clear();
+  // Initialize users storage if not exists
+  if (!localStorage.getItem('bridgeEd_users')) {
+    localStorage.setItem('bridgeEd_users', JSON.stringify([]));
   }
 })();
 
