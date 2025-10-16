@@ -374,42 +374,22 @@ function backToMenu() {
   hideFeedback();
 }
 
-// Save score to database (only if higher than current high score)
+// Save score using local progress tracking
 async function saveScore(score) {
-  const currentUser = getCurrentUser();
-  
-  if (!currentUser || currentUser.type !== 'student') {
-    console.log('Score not saved: User not logged in or not a student');
-    return;
-  }
-  
   try {
-    const userId = currentUser.StudentID;
+    // Check if student is logged in
+    if (!window.GameProgress || !window.GameProgress.isStudentLoggedIn()) {
+      console.log('Score not saved: Student not logged in');
+      return;
+    }
+
+    // Save progress using the new system
+    const success = window.GameProgress.saveGameProgress(4, score);
     
-    // First, get the current high score from database
-    const user = await findUserById(userId);
-    const currentHighScore = user ? (user.StudentScoreGame4 || 0) : 0;
-    
-    // Only save if new score is higher
-    if (score > currentHighScore) {
-      const response = await fetch(`${API_URL}/score/${userId}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          gameNumber: 4,
-          score: score
-        })
-      });
-      
-      if (response.ok) {
-        console.log('New high score saved successfully:', score);
-      } else {
-        console.error('Failed to save score');
-      }
+    if (success) {
+      console.log('Score saved successfully:', score);
     } else {
-      console.log('Score not saved: Current high score is', currentHighScore);
+      console.error('Failed to save score');
     }
   } catch (error) {
     console.error('Error saving score:', error);

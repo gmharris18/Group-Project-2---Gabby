@@ -406,38 +406,28 @@ async function endGame() {
   await saveScore(score);
 }
 
-// Save score to API
+// Save score using local progress tracking
 async function saveScore(finalScore) {
   const messageDiv = document.getElementById('saveScoreMessage');
   
   try {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
+    // Check if student is logged in
+    if (!window.GameProgress || !window.GameProgress.isStudentLoggedIn()) {
       messageDiv.innerHTML = `
         <div class="alert alert-warning">
-          <small>Log in to save your score and compete on the leaderboard!</small>
+          <small>Please log in as a student to save your score!</small>
         </div>
       `;
       return;
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/score`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        gameId: 1,
-        score: finalScore
-      })
-    });
-
-    if (response.ok) {
+    // Save progress using the new system
+    const success = window.GameProgress.saveGameProgress(1, finalScore);
+    
+    if (success) {
       messageDiv.innerHTML = `
         <div class="alert alert-success">
-          <small>✓ Score saved successfully!</small>
+          <small>✓ Score saved successfully! Your progress has been recorded.</small>
         </div>
       `;
     } else {
@@ -447,7 +437,7 @@ async function saveScore(finalScore) {
     console.error('Error saving score:', error);
     messageDiv.innerHTML = `
       <div class="alert alert-warning">
-        <small>Could not save score. Make sure the API is running.</small>
+        <small>Could not save score. Please try again.</small>
       </div>
     `;
   }
