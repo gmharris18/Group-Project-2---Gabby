@@ -13,6 +13,7 @@ namespace MinigamesAPI.Data
         public DbSet<Student> Students { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
         public DbSet<StudentScores> StudentScores { get; set; }
+        public DbSet<StudentProgress> StudentProgress { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -53,6 +54,25 @@ namespace MinigamesAPI.Data
                 entity.HasOne(s => s.Student)
                       .WithOne(st => st.StudentScores)
                       .HasForeignKey<StudentScores>(s => s.StudentID)
+                      .OnDelete(DeleteBehavior.Cascade);
+            });
+
+            // Configure StudentProgress table
+            modelBuilder.Entity<StudentProgress>(entity =>
+            {
+                entity.ToTable("StudentProgress");
+                entity.HasKey(e => new { e.TeacherID, e.StudentID });
+                
+                // Configure many-to-one relationship with Teacher
+                entity.HasOne(sp => sp.Teacher)
+                      .WithMany()
+                      .HasForeignKey(sp => sp.TeacherID)
+                      .OnDelete(DeleteBehavior.Cascade);
+                
+                // Configure many-to-one relationship with Student
+                entity.HasOne(sp => sp.Student)
+                      .WithMany()
+                      .HasForeignKey(sp => sp.StudentID)
                       .OnDelete(DeleteBehavior.Cascade);
             });
         }

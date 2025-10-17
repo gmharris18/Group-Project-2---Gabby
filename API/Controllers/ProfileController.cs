@@ -40,7 +40,8 @@ namespace MinigamesAPI.Controllers
                         ScoreGame2 = student.StudentScores?.Game2Score ?? 0,
                         ScoreGame3 = student.StudentScores?.Game3Score ?? 0,
                         ScoreGame4 = student.StudentScores?.Game4Score ?? 0,
-                        ScoreGame5 = student.StudentScores?.Game5Score ?? 0
+                        ScoreGame5 = student.StudentScores?.Game5Score ?? 0,
+                        LastUpdated = student.StudentScores?.UpdatedAt
                     });
                 }
 
@@ -52,7 +53,8 @@ namespace MinigamesAPI.Controllers
                     {
                         UserId = teacher.TeacherID,
                         Name = teacher.TeacherName,
-                        UserType = "teacher"
+                        UserType = "teacher",
+                        LastUpdated = null
                     });
                 }
 
@@ -81,7 +83,8 @@ namespace MinigamesAPI.Controllers
                         ScoreGame2 = s.StudentScores != null ? s.StudentScores.Game2Score : 0,
                         ScoreGame3 = s.StudentScores != null ? s.StudentScores.Game3Score : 0,
                         ScoreGame4 = s.StudentScores != null ? s.StudentScores.Game4Score : 0,
-                        ScoreGame5 = s.StudentScores != null ? s.StudentScores.Game5Score : 0
+                        ScoreGame5 = s.StudentScores != null ? s.StudentScores.Game5Score : 0,
+                        LastUpdated = s.StudentScores != null ? s.StudentScores.UpdatedAt : null
                     })
                     .ToListAsync();
 
