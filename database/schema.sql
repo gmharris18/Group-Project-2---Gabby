@@ -30,9 +30,22 @@ CREATE TABLE IF NOT EXISTS StudentScores (
     FOREIGN KEY (StudentID) REFERENCES Student(StudentID) ON DELETE CASCADE
 );
 
+-- StudentProgress Table (Teacher-Student assignments)
+CREATE TABLE IF NOT EXISTS StudentProgress (
+    TeacherID TEXT NOT NULL,
+    StudentID TEXT NOT NULL,
+    CreatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    UpdatedAt DATETIME DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (TeacherID, StudentID),
+    FOREIGN KEY (TeacherID) REFERENCES Teacher(TeacherID) ON DELETE CASCADE,
+    FOREIGN KEY (StudentID) REFERENCES Student(StudentID) ON DELETE CASCADE
+);
+
 -- Optional: Create indexes for faster queries
 CREATE INDEX IF NOT EXISTS idx_student_name ON Student(StudentName);
 CREATE INDEX IF NOT EXISTS idx_teacher_name ON Teacher(TeacherName);
+CREATE INDEX IF NOT EXISTS idx_studentprogress_teacher ON StudentProgress(TeacherID);
+CREATE INDEX IF NOT EXISTS idx_studentprogress_student ON StudentProgress(StudentID);
 
 -- Sample data for testing (optional - remove in production)
 -- INSERT INTO Student (StudentID, StudentName, StudentPassword) 

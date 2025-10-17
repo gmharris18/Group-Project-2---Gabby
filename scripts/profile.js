@@ -12,10 +12,50 @@ async function displayCurrentUserProfile() {
     return;
   }
   
-  const currentUser = window.Auth.getCurrentUser();
+  // Check if we're viewing another user's profile (from teacher dashboard)
+  const urlParams = new URLSearchParams(window.location.search);
+  const targetUserId = urlParams.get('userId');
   
-  // Only students have profiles for now
-  if (currentUser.type !== 'student') {
+  let currentUser = window.Auth.getCurrentUser();
+  
+  // If viewing another user's profile, fetch their data
+  if (targetUserId && currentUser.type === 'teacher') {
+    try {
+      const targetUser = await window.Auth.findUserById(targetUserId);
+      if (targetUser) {
+        currentUser = targetUser; // Use target user's data for display
+        // Update page title to show it's viewing another user
+        document.title = `${targetUser.name}'s Profile - BridgeEd`;
+        const profileTitle = document.querySelector('h1');
+        if (profileTitle) {
+          profileTitle.textContent = `${targetUser.name}'s Profile`;
+          // Add back button
+          profileTitle.innerHTML = `
+            <a href="./teacher-dashboard.html" class="btn btn-outline-secondary btn-sm me-3">
+              ← Back to Dashboard
+            </a>
+            ${targetUser.name}'s Profile
+          `;
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching target user:', error);
+      notLoggedInMessage.style.display = 'block';
+      notLoggedInMessage.innerHTML = `
+        <div class="alert alert-danger">
+          <h4 class="alert-heading">Error</h4>
+          <p>Could not load the requested user's profile.</p>
+          <hr>
+          <a href="./teacher-dashboard.html" class="btn btn-primary">Back to Dashboard</a>
+        </div>
+      `;
+      profileDisplay.style.display = 'none';
+      return;
+    }
+  }
+  
+  // Only students have profiles for now (unless teacher is viewing student profile)
+  if (currentUser.type !== 'student' && !targetUserId) {
     notLoggedInMessage.style.display = 'block';
     notLoggedInMessage.innerHTML = `
       <h5 class="alert-heading">Teacher Profile</h5>
@@ -27,7 +67,7 @@ async function displayCurrentUserProfile() {
   
   try {
     // Fetch fresh data from API
-    const userId = currentUser.StudentID;
+    const userId = currentUser.userId;
     const user = await window.Auth.findUserById(userId);
     
     if (!user) {
@@ -44,8 +84,8 @@ async function displayCurrentUserProfile() {
     notLoggedInMessage.style.display = 'none';
     
     // Get user details
-    const name = user.StudentName;
-    const id = user.StudentID;
+    const name = user.name;
+    const id = user.userId;
     const initial = name.charAt(0).toUpperCase();
     
     // Update profile display
@@ -54,11 +94,11 @@ async function displayCurrentUserProfile() {
     document.getElementById('userId').textContent = id;
     
     // Show scores
-    document.getElementById('score1').textContent = user.StudentScoreGame1 || 0;
-    document.getElementById('score2').textContent = user.StudentScoreGame2 || 0;
-    document.getElementById('score3').textContent = user.StudentScoreGame3 || 0;
-    document.getElementById('score4').textContent = user.StudentScoreGame4 || 0;
-    document.getElementById('score5').textContent = user.StudentScoreGame5 || 0;
+    document.getElementById('score1').textContent = user.scoreGame1 || 0;
+    document.getElementById('score2').textContent = user.scoreGame2 || 0;
+    document.getElementById('score3').textContent = user.scoreGame3 || 0;
+    document.getElementById('score4').textContent = user.scoreGame4 || 0;
+    document.getElementById('score5').textContent = user.scoreGame5 || 0;
     
     // Show profile
     profileDisplay.style.display = 'block';

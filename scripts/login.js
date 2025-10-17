@@ -1,42 +1,6 @@
 // Login page functionality
 let currentUserType = 'student';
 
-// Local storage keys
-const USERS_KEY = 'bridgeEd_users';
-const CURRENT_USER_KEY = 'bridgeEd_currentUser';
-
-// Initialize users storage if not exists
-function initUsersStorage() {
-  if (!localStorage.getItem(USERS_KEY)) {
-    localStorage.setItem(USERS_KEY, JSON.stringify([]));
-  }
-}
-
-// Get all users
-function getAllUsers() {
-  return JSON.parse(localStorage.getItem(USERS_KEY) || '[]');
-}
-
-// Save users
-function saveUsers(users) {
-  localStorage.setItem(USERS_KEY, JSON.stringify(users));
-}
-
-// Add new user
-function addUser(userData) {
-  const users = getAllUsers();
-  users.push(userData);
-  saveUsers(users);
-}
-
-// Find user by ID and type
-function findUser(userId, userType) {
-  const users = getAllUsers();
-  return users.find(user => user.userId === userId && user.userType === userType);
-}
-
-// Use global Auth functions directly - no need to redeclare them
-
 // Update labels based on user type
 function updateUserTypeLabels() {
   const loginIdLabel = document.getElementById('loginIdLabel');
@@ -91,17 +55,24 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
         type: result.userType,
         userId: result.userId,
         name: result.name,
-        StudentID: result.userId,
-        StudentName: result.name,
-        TeacherID: result.userId,
-        TeacherName: result.name,
         StudentScoreGame1: result.scoreGame1 || 0,
         StudentScoreGame2: result.scoreGame2 || 0,
         StudentScoreGame3: result.scoreGame3 || 0,
         StudentScoreGame4: result.scoreGame4 || 0,
         StudentScoreGame5: result.scoreGame5 || 0
       };
+      
+      // Add type-specific fields
+      if (result.userType === 'student') {
+        userData.StudentID = result.userId;
+        userData.StudentName = result.name;
+      } else if (result.userType === 'teacher') {
+        userData.TeacherID = result.userId;
+        userData.TeacherName = result.name;
+      }
+      
       window.Auth.setCurrentUser(userData);
+      
       messageDiv.innerHTML = '<div class="alert alert-success">Login successful! Redirecting...</div>';
       setTimeout(() => {
         if (currentUserType === 'teacher') {
@@ -158,16 +129,21 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         type: result.userType,
         userId: result.userId,
         name: result.name,
-        StudentID: result.userId,
-        StudentName: result.name,
-        TeacherID: result.userId,
-        TeacherName: result.name,
         StudentScoreGame1: result.scoreGame1 || 0,
         StudentScoreGame2: result.scoreGame2 || 0,
         StudentScoreGame3: result.scoreGame3 || 0,
         StudentScoreGame4: result.scoreGame4 || 0,
         StudentScoreGame5: result.scoreGame5 || 0
       };
+      
+      // Add type-specific fields
+      if (result.userType === 'student') {
+        userData.StudentID = result.userId;
+        userData.StudentName = result.name;
+      } else if (result.userType === 'teacher') {
+        userData.TeacherID = result.userId;
+        userData.TeacherName = result.name;
+      }
       
       window.Auth.setCurrentUser(userData);
       messageDiv.innerHTML = '<div class="alert alert-success">Account created successfully! Redirecting...</div>';
@@ -187,8 +163,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
   }
 });
 
-// Initialize storage and labels
-initUsersStorage();
+// Initialize labels
 updateUserTypeLabels();
 
 // Password reset functionality
