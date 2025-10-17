@@ -132,6 +132,12 @@ function initGame() {
   score = 0;
   questionsAnswered = 0;
   
+  // Set up quit button
+  const quitBtn = document.getElementById('quitGameBtn');
+  if (quitBtn) {
+    quitBtn.addEventListener('click', quitGame);
+  }
+  
   showStartScreen();
 }
 
@@ -151,24 +157,30 @@ function showStartScreen() {
     <div class="row justify-content-center">
       <div class="col-lg-8">
         <div class="card shadow-lg">
-          <div class="card-body text-center p-5">
-            <h1 class="display-4 mb-4">🧮 Math Challenge</h1>
-            <p class="lead mb-4">Test your geometry and algebra skills!</p>
-            <div class="alert alert-info">
-              <h5>Game Rules:</h5>
-              <ul class="list-unstyled mb-0">
-                <li>✓ Answer 10 questions</li>
-                <li>✓ 30 seconds per question</li>
-                <li>✓ Each correct answer = 10 points</li>
-                <li>✓ Try to get the highest score!</li>
-              </ul>
+          <div class="card-body text-center p-4">
+            <h1 class="display-5 mb-3">🧮 Math Challenge</h1>
+            <p class="lead mb-3">Test your geometry and algebra skills!</p>
+            <div class="alert alert-info mb-3">
+              <h6 class="mb-2">Game Rules:</h6>
+              <div class="row text-start">
+                <div class="col-md-6">
+                  <small>✓ Answer 10 questions</small><br>
+                  <small>✓ 30 seconds per question</small>
+                </div>
+                <div class="col-md-6">
+                  <small>✓ Each correct = 10 points</small><br>
+                  <small>✓ Try to get highest score!</small>
+                </div>
+              </div>
             </div>
-            <button class="btn btn-primary btn-lg mt-3" onclick="startGame()">
-              Start Game
-            </button>
-            <a href="./game.html" class="btn btn-outline-secondary btn-lg mt-3 ms-2">
-              Back to Games
-            </a>
+            <div class="d-grid gap-2">
+              <button class="btn btn-primary" onclick="startGame()">
+                Start Game
+              </button>
+              <a href="./game.html" class="btn btn-outline-secondary">
+                Back to Games
+              </a>
+            </div>
           </div>
         </div>
       </div>
@@ -181,6 +193,13 @@ function startGame() {
   currentQuestionIndex = 0;
   score = 0;
   questionsAnswered = 0;
+  
+  // Show quit button when starting new game
+  const quitBtn = document.getElementById('quitGameBtn');
+  if (quitBtn) {
+    quitBtn.style.display = 'block';
+  }
+  
   showQuestion();
 }
 
@@ -205,14 +224,14 @@ function showQuestion() {
               <span class="badge bg-light text-primary">Score: ${score}</span>
             </div>
           </div>
-          <div class="card-body p-4">
-            <div class="mb-3">
+          <div class="card-body p-3">
+            <div class="mb-2">
               <span class="badge bg-info">${question.category}</span>
             </div>
-            <h3 class="mb-4">${question.question}</h3>
-            <div class="d-grid gap-3">
+            <h4 class="mb-3">${question.question}</h4>
+            <div class="d-grid gap-2">
               ${question.options.map((option, index) => `
-                <button class="btn btn-outline-primary btn-lg text-start answer-btn" 
+                <button class="btn btn-outline-primary text-start answer-btn" 
                         onclick="selectAnswer(${index})"
                         data-index="${index}">
                   ${String.fromCharCode(65 + index)}. ${option}
@@ -301,27 +320,65 @@ function showFeedback(isCorrect, timeoutMessage = null, selectedIndex = null) {
     }
   });
 
-  // Show feedback message
-  const app = document.getElementById('app');
-  const feedbackDiv = document.createElement('div');
-  feedbackDiv.className = 'row justify-content-center mt-3';
-  feedbackDiv.innerHTML = `
-    <div class="col-lg-8">
-      <div class="alert ${isCorrect ? 'alert-success' : 'alert-danger'} alert-dismissible fade show">
-        <h5>${timeoutMessage || (isCorrect ? '✓ Correct!' : '✗ Incorrect')}</h5>
-        <p class="mb-0">
+  // Show feedback popup that covers the screen
+  const feedbackPopup = document.createElement('div');
+  feedbackPopup.id = 'feedbackPopup';
+  feedbackPopup.style.cssText = `
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.8);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    backdrop-filter: blur(5px);
+  `;
+  
+  feedbackPopup.innerHTML = `
+    <div class="card shadow-lg" style="max-width: 400px; width: 90%;">
+      <div class="card-body text-center p-4">
+        <div class="mb-3">
+          <i class="fas fa-${isCorrect ? 'check-circle text-success' : 'times-circle text-danger'}" style="font-size: 3rem;"></i>
+        </div>
+        <h3 class="mb-3 ${isCorrect ? 'text-success' : 'text-danger'}">
+          ${timeoutMessage || (isCorrect ? 'Correct!' : 'Incorrect')}
+        </h3>
+        <p class="mb-3">
           ${timeoutMessage ? 'The correct answer was: ' : (isCorrect ? 'Great job!' : 'The correct answer is: ')}
           <strong>${question.options[question.correct]}</strong>
         </p>
-      </div>
-      <div class="d-grid">
-        <button class="btn btn-primary" onclick="nextQuestion()">
-          ${currentQuestionIndex < selectedQuestions.length - 1 ? 'Next Question' : 'See Results'}
-        </button>
+        <div class="progress mb-3" style="height: 6px;">
+          <div class="progress-bar ${isCorrect ? 'bg-success' : 'bg-danger'}" role="progressbar" style="width: 100%;" id="feedbackProgress"></div>
+        </div>
+        <small class="text-muted">Moving to next question...</small>
       </div>
     </div>
   `;
-  app.appendChild(feedbackDiv);
+  
+  document.body.appendChild(feedbackPopup);
+  
+  // Animate progress bar
+  const progressBar = document.getElementById('feedbackProgress');
+  progressBar.style.transition = 'width 1s linear';
+  progressBar.style.width = '0%';
+  
+  // Auto-advance after 1 second
+  setTimeout(() => {
+    // Remove feedback popup
+    const popup = document.getElementById('feedbackPopup');
+    if (popup) {
+      popup.remove();
+    }
+    
+    if (currentQuestionIndex < selectedQuestions.length - 1) {
+      nextQuestion();
+    } else {
+      endGame();
+    }
+  }, 1000);
 }
 
 // Next question
@@ -330,15 +387,34 @@ function nextQuestion() {
   showQuestion();
 }
 
+// Quit game
+function quitGame() {
+  if (timerInterval) {
+    clearInterval(timerInterval);
+  }
+  // End game without completing all questions
+  endGame(true);
+}
+
 // End game
-async function endGame() {
+async function endGame(quitGame = false) {
   const app = document.getElementById('app');
   
-  const percentage = (score / (selectedQuestions.length * 10)) * 100;
+  // Hide quit button when showing end screen
+  const quitBtn = document.getElementById('quitGameBtn');
+  if (quitBtn) {
+    quitBtn.style.display = 'none';
+  }
+  
+  const percentage = questionsAnswered > 0 ? (score / (questionsAnswered * 10)) * 100 : 0;
+  let title = quitGame ? 'Game Quit' : 'Game Over!';
   let message = '';
   let badgeClass = '';
   
-  if (percentage >= 90) {
+  if (quitGame) {
+    message = 'You quit the game';
+    badgeClass = 'bg-secondary';
+  } else if (percentage >= 90) {
     message = 'Outstanding! 🏆';
     badgeClass = 'bg-success';
   } else if (percentage >= 70) {
@@ -356,43 +432,43 @@ async function endGame() {
     <div class="row justify-content-center">
       <div class="col-lg-8">
         <div class="card shadow-lg">
-          <div class="card-body text-center p-5">
-            <h1 class="display-4 mb-4">Game Over!</h1>
-            <div class="mb-4">
-              <span class="badge ${badgeClass} fs-5 px-4 py-3">${message}</span>
+          <div class="card-body text-center p-4">
+            <h1 class="display-5 mb-3">${title}</h1>
+            <div class="mb-3">
+              <span class="badge ${badgeClass} fs-6 px-3 py-2">${message}</span>
             </div>
-            <div class="row g-3 mb-4">
+            <div class="row g-2 mb-3">
               <div class="col-md-4">
                 <div class="card bg-primary text-white">
-                  <div class="card-body">
-                    <h3 class="display-6 mb-0">${score}</h3>
-                    <p class="mb-0">Total Score</p>
+                  <div class="card-body py-2">
+                    <h4 class="mb-0">${score}</h4>
+                    <small>Total Score</small>
                   </div>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="card bg-success text-white">
-                  <div class="card-body">
-                    <h3 class="display-6 mb-0">${Math.round(percentage)}%</h3>
-                    <p class="mb-0">Accuracy</p>
+                  <div class="card-body py-2">
+                    <h4 class="mb-0">${questionsAnswered > 0 ? Math.round(percentage) : 0}%</h4>
+                    <small>Accuracy</small>
                   </div>
                 </div>
               </div>
               <div class="col-md-4">
                 <div class="card bg-info text-white">
-                  <div class="card-body">
-                    <h3 class="display-6 mb-0">${questionsAnswered}/10</h3>
-                    <p class="mb-0">Questions</p>
+                  <div class="card-body py-2">
+                    <h4 class="mb-0">${questionsAnswered}/10</h4>
+                    <small>Questions</small>
                   </div>
                 </div>
               </div>
             </div>
-            <div id="saveScoreMessage" class="mb-3"></div>
+            <div id="saveScoreMessage" class="mb-2"></div>
             <div class="d-grid gap-2">
-              <button class="btn btn-primary btn-lg" onclick="startGame()">
+              <button class="btn btn-primary" onclick="startGame()">
                 Play Again
               </button>
-              <a href="./game.html" class="btn btn-outline-secondary btn-lg">
+              <a href="./game.html" class="btn btn-outline-secondary">
                 Back to Games
               </a>
             </div>
@@ -406,38 +482,28 @@ async function endGame() {
   await saveScore(score);
 }
 
-// Save score to API
+// Save score using local progress tracking
 async function saveScore(finalScore) {
   const messageDiv = document.getElementById('saveScoreMessage');
   
   try {
-    const token = localStorage.getItem('token');
-    
-    if (!token) {
+    // Check if student is logged in
+    if (!window.GameProgress || !window.GameProgress.isStudentLoggedIn()) {
       messageDiv.innerHTML = `
         <div class="alert alert-warning">
-          <small>Log in to save your score and compete on the leaderboard!</small>
+          <small>Please log in as a student to save your score!</small>
         </div>
       `;
       return;
     }
 
-    const response = await fetch(`${API_BASE_URL}/api/score`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({
-        gameId: 1,
-        score: finalScore
-      })
-    });
-
-    if (response.ok) {
+    // Save progress using the new system
+    const success = await window.GameProgress.saveGameProgress(1, finalScore);
+    
+    if (success) {
       messageDiv.innerHTML = `
         <div class="alert alert-success">
-          <small>✓ Score saved successfully!</small>
+          <small>✓ Score saved successfully! Your progress has been recorded.</small>
         </div>
       `;
     } else {
@@ -447,7 +513,7 @@ async function saveScore(finalScore) {
     console.error('Error saving score:', error);
     messageDiv.innerHTML = `
       <div class="alert alert-warning">
-        <small>Could not save score. Make sure the API is running.</small>
+        <small>Could not save score. Please try again.</small>
       </div>
     `;
   }
