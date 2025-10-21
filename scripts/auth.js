@@ -26,9 +26,10 @@ function logout() {
 }
 
 // Find user by ID (API call)
-async function findUserById(userId) {
+async function findUserById(userId, userType = null) {
   try {
-    const response = await fetch(`${API_URL}/profile/${userId}`);
+    const url = userType ? `${API_URL}/profile/${userId}?userType=${userType}` : `${API_URL}/profile/${userId}`;
+    const response = await fetch(url);
     if (!response.ok) {
       return null;
     }

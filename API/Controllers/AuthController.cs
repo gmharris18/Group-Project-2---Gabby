@@ -20,6 +20,21 @@ namespace MinigamesAPI.Controllers
             _logger = logger;
         }
 
+        private string GenerateClassID()
+        {
+            Random random = new Random();
+            string classId;
+            bool isUnique;
+            
+            do
+            {
+                classId = random.Next(10000000, 99999999).ToString();
+                isUnique = !_context.Teachers.Any(t => t.ClassID == classId);
+            } while (!isUnique);
+            
+            return classId;
+        }
+
         [HttpPost("register")]
         public async Task<ActionResult<UserResponse>> Register([FromBody] RegisterRequest request)
         {
@@ -36,6 +51,22 @@ namespace MinigamesAPI.Controllers
                 if (request.UserType != "student" && request.UserType != "teacher")
                 {
                     return BadRequest(new { message = "Invalid user type. Must be 'student' or 'teacher'." });
+                }
+
+                // Validate ClassID for students
+                if (request.UserType == "student")
+                {
+                    if (string.IsNullOrWhiteSpace(request.ClassID))
+                    {
+                        return BadRequest(new { message = "Class ID is required for student registration." });
+                    }
+
+                    // Check if the ClassID exists for any teacher
+                    var teacherWithClass = await _context.Teachers.FirstOrDefaultAsync(t => t.ClassID == request.ClassID);
+                    if (teacherWithClass == null)
+                    {
+                        return BadRequest(new { message = "Invalid Class ID. Please check with your teacher." });
+                    }
                 }
 
                 // Check if user already exists
@@ -69,6 +100,20 @@ namespace MinigamesAPI.Controllers
                     };
                     
                     _context.StudentScores.Add(studentScores);
+
+                    // Create InClass record to link student with teacher
+                    var teacherWithClass = await _context.Teachers.FirstOrDefaultAsync(t => t.ClassID == request.ClassID);
+                    if (teacherWithClass != null)
+                    {
+                        var inClass = new InClass
+                        {
+                            StudentID = request.UserId,
+                            TeacherID = teacherWithClass.TeacherID,
+                            ClassID = request.ClassID
+                        };
+                        _context.InClasses.Add(inClass);
+                    }
+
                     await _context.SaveChangesAsync();
 
                     return Ok(new UserResponse
@@ -91,12 +136,16 @@ namespace MinigamesAPI.Controllers
                         return Conflict(new { message = "This Teacher ID is already taken." });
                     }
 
+                    // Generate unique ClassID for teacher
+                    var classId = GenerateClassID();
+
                     // Create new teacher
                     var teacher = new Teacher
                     {
                         TeacherID = request.UserId,
                         TeacherName = request.Name,
-                        TeacherPassword = BCrypt.Net.BCrypt.HashPassword(request.Password)
+                        TeacherPassword = BCrypt.Net.BCrypt.HashPassword(request.Password),
+                        ClassID = classId
                     };
 
                     _context.Teachers.Add(teacher);

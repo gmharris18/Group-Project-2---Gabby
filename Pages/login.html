@@ -152,6 +152,19 @@
                         required
                       />
                     </div>
+                    <div class="mb-3" id="classIdField" style="display: none;">
+                      <label for="signupClassId" class="form-label">Class ID</label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="signupClassId"
+                        placeholder="Enter your teacher's Class ID"
+                        maxlength="8"
+                        pattern="[0-9]{8}"
+                        title="Class ID must be 8 digits"
+                      />
+                      <div class="form-text">Ask your teacher for the 8-digit Class ID</div>
+                    </div>
                     <div class="d-grid">
                       <button type="submit" class="btn btn-success">Create Account</button>
                     </div>

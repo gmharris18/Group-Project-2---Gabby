@@ -19,73 +19,27 @@ namespace MinigamesAPI.Controllers
             _logger = logger;
         }
 
-        [HttpPost("assign")]
-        public async Task<ActionResult> AssignStudentToTeacher([FromBody] AssignStudentRequest request)
-        {
-            try
-            {
-                // Validate that teacher exists
-                var teacher = await _context.Teachers.FindAsync(request.teacherId);
-                if (teacher == null)
-                {
-                    return NotFound(new { message = "Teacher not found." });
-                }
-
-                // Validate that student exists
-                var student = await _context.Students.FindAsync(request.studentId);
-                if (student == null)
-                {
-                    return NotFound(new { message = "Student not found." });
-                }
-
-                // Check if assignment already exists
-                var existingAssignment = await _context.StudentProgress
-                    .FirstOrDefaultAsync(sp => sp.StudentID == request.studentId);
-                
-                if (existingAssignment != null)
-                {
-                    return Conflict(new { message = "Student is already assigned to a teacher." });
-                }
-
-                // Create new assignment
-                var studentProgress = new StudentProgress
-                {
-                    TeacherID = request.teacherId,
-                    StudentID = request.studentId
-                };
-
-                _context.StudentProgress.Add(studentProgress);
-                await _context.SaveChangesAsync();
-
-                return Ok(new { message = "Student assigned to teacher successfully." });
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error assigning student to teacher");
-                return StatusCode(500, new { message = "An error occurred while assigning student to teacher." });
-            }
-        }
 
         [HttpGet("teacher/{teacherId}")]
         public async Task<ActionResult<List<UserResponse>>> GetStudentsByTeacher(string teacherId)
         {
             try
             {
-                var students = await _context.StudentProgress
-                    .Where(sp => sp.TeacherID == teacherId)
-                    .Include(sp => sp.Student)
+                var students = await _context.InClasses
+                    .Where(ic => ic.TeacherID == teacherId)
+                    .Include(ic => ic.Student)
                         .ThenInclude(s => s.StudentScores)
-                    .Select(sp => new UserResponse
+                    .Select(ic => new UserResponse
                     {
-                        UserId = sp.Student.StudentID,
-                        Name = sp.Student.StudentName,
+                        UserId = ic.Student.StudentID,
+                        Name = ic.Student.StudentName,
                         UserType = "student",
-                        ScoreGame1 = sp.Student.StudentScores != null ? sp.Student.StudentScores.Game1Score : 0,
-                        ScoreGame2 = sp.Student.StudentScores != null ? sp.Student.StudentScores.Game2Score : 0,
-                        ScoreGame3 = sp.Student.StudentScores != null ? sp.Student.StudentScores.Game3Score : 0,
-                        ScoreGame4 = sp.Student.StudentScores != null ? sp.Student.StudentScores.Game4Score : 0,
-                        ScoreGame5 = sp.Student.StudentScores != null ? sp.Student.StudentScores.Game5Score : 0,
-                        LastUpdated = sp.Student.StudentScores != null ? sp.Student.StudentScores.UpdatedAt : null
+                        ScoreGame1 = ic.Student.StudentScores != null ? ic.Student.StudentScores.Game1Score : 0,
+                        ScoreGame2 = ic.Student.StudentScores != null ? ic.Student.StudentScores.Game2Score : 0,
+                        ScoreGame3 = ic.Student.StudentScores != null ? ic.Student.StudentScores.Game3Score : 0,
+                        ScoreGame4 = ic.Student.StudentScores != null ? ic.Student.StudentScores.Game4Score : 0,
+                        ScoreGame5 = ic.Student.StudentScores != null ? ic.Student.StudentScores.Game5Score : 0,
+                        LastUpdated = ic.Student.StudentScores != null ? ic.Student.StudentScores.UpdatedAt : null
                     })
                     .ToListAsync();
 
@@ -103,15 +57,15 @@ namespace MinigamesAPI.Controllers
         {
             try
             {
-                var assignment = await _context.StudentProgress
-                    .FirstOrDefaultAsync(sp => sp.StudentID == studentId);
+                var assignment = await _context.InClasses
+                    .FirstOrDefaultAsync(ic => ic.StudentID == studentId);
 
                 if (assignment == null)
                 {
                     return NotFound(new { message = "Student assignment not found." });
                 }
 
-                _context.StudentProgress.Remove(assignment);
+                _context.InClasses.Remove(assignment);
                 await _context.SaveChangesAsync();
 
                 return Ok(new { message = "Student unassigned successfully." });

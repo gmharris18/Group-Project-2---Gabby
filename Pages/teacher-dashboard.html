@@ -105,6 +105,25 @@
         color: white;
       }
       
+      .class-id-code {
+        font-family: 'Courier New', monospace;
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #0d6efd;
+        background-color: #f8f9fa;
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        border: 2px solid #0d6efd;
+        display: inline-block;
+        letter-spacing: 2px;
+      }
+      
+      .class-id-display {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+      }
+      
       .search-box {
         border-radius: 25px;
         border: 2px solid #e9ecef;
@@ -174,6 +193,33 @@
 
     <!-- Main Content -->
     <div class="container">
+      <!-- Class ID Section -->
+      <div class="row mb-4">
+        <div class="col-12">
+          <div class="card border-primary">
+            <div class="card-header bg-primary text-white">
+              <h5 class="mb-0">🏫 Your Class Information</h5>
+            </div>
+            <div class="card-body">
+              <div class="row align-items-center">
+                <div class="col-md-8">
+                  <h6 class="mb-1">Class ID for Student Registration</h6>
+                  <p class="text-muted mb-0">Share this 8-digit code with your students so they can join your class.</p>
+                </div>
+                <div class="col-md-4 text-end">
+                  <div class="class-id-display">
+                    <span class="class-id-code" id="mainTeacherClassId">Loading...</span>
+                    <button class="btn btn-sm btn-outline-primary ms-2" onclick="copyClassId()" title="Copy Class ID">
+                      📋 Copy
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      
       <!-- Statistics Cards -->
       <div class="row mb-4">
         <div class="col-md-3">
@@ -209,9 +255,8 @@
           <div class="card">
             <div class="card-body">
             <div class="d-flex justify-content-between align-items-center mb-3">
-              <h5 class="mb-0">👥 Student Management</h5>
+              <h5 class="mb-0">👥 Class Students</h5>
               <div class="d-flex gap-2">
-                <button class="btn btn-success btn-sm" onclick="showAddStudentModal()">🔧 Assign Student (Debug)</button>
                 <input type="text" class="form-control search-box" id="studentSearch" placeholder="Search students..." style="width: 200px;">
                 <div class="filter-tabs">
                   <button class="filter-tab active" data-filter="all">All</button>
@@ -231,34 +276,6 @@
       </div>
     </div>
 
-    <!-- Add Student Modal -->
-    <div class="modal fade" id="addStudentModal" tabindex="-1" aria-labelledby="addStudentModalLabel" aria-hidden="true">
-      <div class="modal-dialog">
-        <div class="modal-content">
-          <div class="modal-header">
-            <h5 class="modal-title" id="addStudentModalLabel">🔧 Assign Existing Student (Debug)</h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-          </div>
-          <div class="modal-body">
-            <div class="alert alert-info">
-              <i class="fas fa-info-circle"></i>
-              <strong>Debug Mode:</strong> Enter an existing student ID to assign them to your class.
-            </div>
-            <form id="addStudentForm">
-              <div class="mb-3">
-                <label for="studentId" class="form-label">Student ID</label>
-                <input type="text" class="form-control" id="studentId" placeholder="Enter existing student ID" required>
-                <div class="form-text">Enter the ID of an existing student to assign them to your class.</div>
-              </div>
-            </form>
-          </div>
-          <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-            <button type="button" class="btn btn-primary" onclick="addStudent()">🔧 Assign Student</button>
-          </div>
-        </div>
-      </div>
-    </div>
 
 
     <!-- Bootstrap JS bundle -->
@@ -309,6 +326,34 @@
         }, 5000);
       }
 
+      function copyClassId() {
+        const classIdElement = document.getElementById('mainTeacherClassId');
+        if (!classIdElement) {
+          showNotification('Class ID element not found. Please refresh the page.', 'warning');
+          return;
+        }
+        
+        const classId = classIdElement.textContent;
+        
+        if (classId && classId !== 'Loading...' && classId !== 'Error loading' && classId !== 'Not available') {
+          // Copy to clipboard
+          navigator.clipboard.writeText(classId).then(() => {
+            showNotification('Class ID copied to clipboard!', 'success');
+          }).catch(() => {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = classId;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            showNotification('Class ID copied to clipboard!', 'success');
+          });
+        } else {
+          showNotification('Class ID not available yet. Please wait for it to load.', 'warning');
+        }
+      }
+
       // Check login status and user type when page loads
       document.addEventListener('DOMContentLoaded', () => {
         if (!window.Auth || !window.Auth.isLoggedIn()) {
@@ -331,7 +376,8 @@
         }
         
         const currentUser = window.Auth.getCurrentUser();
-        if (currentUser.type !== 'teacher') {
+        
+        if (!currentUser || currentUser.type !== 'teacher') {
           document.body.innerHTML = `
             <div class="container py-5">
               <div class="row justify-content-center">
@@ -339,8 +385,10 @@
                   <div class="alert alert-danger text-center">
                     <h4 class="alert-heading">Access Denied</h4>
                     <p>Only teachers can access the teacher dashboard.</p>
+                    <p>You are currently logged in as: <strong>${currentUser ? currentUser.type : 'Unknown'}</strong></p>
                     <hr>
                     <a href="./home.html" class="btn btn-primary">Back to Home</a>
+                    <a href="./login.html" class="btn btn-secondary ms-2">Login as Teacher</a>
                   </div>
                 </div>
               </div>
@@ -365,6 +413,67 @@
           if (!currentUser || currentUser.type !== 'teacher') {
             students = [];
             return;
+          }
+
+          // Load teacher profile to get ClassID
+          try {
+            const profileResponse = await fetch(`http://localhost:5000/api/profile/${currentUser.userId}?userType=teacher`);
+            if (profileResponse.ok) {
+              const teacherProfile = await profileResponse.json();
+              
+              // Check if we got a teacher profile (not a student profile)
+              if (teacherProfile.userType !== 'teacher') {
+                showNotification('Error: No teacher profile found for this user ID. Please contact support or create a new teacher account.', 'danger');
+                
+                // Safely update elements if they exist
+                const teacherClassIdElement = document.getElementById('teacherClassId');
+                const mainTeacherClassIdElement = document.getElementById('mainTeacherClassId');
+                
+                if (teacherClassIdElement) {
+                  teacherClassIdElement.textContent = 'Profile Error';
+                }
+                if (mainTeacherClassIdElement) {
+                  mainTeacherClassIdElement.textContent = 'Profile Error';
+                }
+                return;
+              }
+              
+              // Check for ClassId in different possible formats
+              const classId = teacherProfile.classId || teacherProfile.ClassId || 'Not available';
+              
+              // Safely update elements if they exist
+              const teacherClassIdElement = document.getElementById('teacherClassId');
+              const mainTeacherClassIdElement = document.getElementById('mainTeacherClassId');
+              
+              if (teacherClassIdElement) {
+                teacherClassIdElement.textContent = classId;
+              }
+              if (mainTeacherClassIdElement) {
+                mainTeacherClassIdElement.textContent = classId;
+              }
+            } else {
+              // Safely update elements if they exist
+              const teacherClassIdElement = document.getElementById('teacherClassId');
+              const mainTeacherClassIdElement = document.getElementById('mainTeacherClassId');
+              
+              if (teacherClassIdElement) {
+                teacherClassIdElement.textContent = 'Error loading';
+              }
+              if (mainTeacherClassIdElement) {
+                mainTeacherClassIdElement.textContent = 'Error loading';
+              }
+            }
+          } catch (error) {
+            // Safely update elements if they exist
+            const teacherClassIdElement = document.getElementById('teacherClassId');
+            const mainTeacherClassIdElement = document.getElementById('mainTeacherClassId');
+            
+            if (teacherClassIdElement) {
+              teacherClassIdElement.textContent = 'Error loading';
+            }
+            if (mainTeacherClassIdElement) {
+              mainTeacherClassIdElement.textContent = 'Error loading';
+            }
           }
 
           // Get students assigned to this teacher from API
@@ -463,6 +572,15 @@
 
       // Initialize dashboard
       async function initDashboard() {
+        // Ensure DOM elements exist before proceeding
+        const mainClassIdElement = document.getElementById('mainTeacherClassId');
+        if (!mainClassIdElement) {
+          console.error('mainTeacherClassId element not found in DOM');
+          // Wait a bit and try again
+          setTimeout(() => initDashboard(), 100);
+          return;
+        }
+        
         await loadStudentData(); // Load real student data first
         personalizeDashboard();
         updateStats();
@@ -548,11 +666,12 @@
                 <div class="mb-4">
                   <i class="fas fa-users fa-3x text-muted"></i>
                 </div>
-                <h5 class="text-muted">No Students Assigned</h5>
-                <p class="text-muted">You don't have any students assigned to your class yet.</p>
-                <button class="btn btn-primary" onclick="showAddStudentModal()">
-                  <i class="fas fa-plus"></i> Assign Your First Student (Debug)
-                </button>
+                <h5 class="text-muted">No Students in Class</h5>
+                <p class="text-muted">Students will automatically appear here when they register using your Class ID.</p>
+                <div class="alert alert-info">
+                  <strong>Your Class ID:</strong> <span id="teacherClassId">Loading...</span>
+                  <br><small>Share this 8-digit code with your students for registration.</small>
+                </div>
               </div>
             `;
           } else {
@@ -658,69 +777,6 @@
       }
 
 
-      function showAddStudentModal() {
-        document.getElementById('addStudentForm').reset();
-        const modal = new bootstrap.Modal(document.getElementById('addStudentModal'));
-        modal.show();
-      }
-
-      async function addStudent() {
-        const studentId = document.getElementById('studentId').value.trim();
-
-        if (!studentId) {
-          showNotification('Please enter a student ID.', 'warning');
-          return;
-        }
-
-        // Check if student is already assigned to this teacher
-        if (students.find(s => s.id === studentId)) {
-          showNotification('This student is already assigned to your class.', 'warning');
-          return;
-        }
-
-        try {
-          // First, verify the student exists by trying to fetch their profile
-          const profileResponse = await fetch(`http://localhost:5000/api/profile/${studentId}`);
-          if (!profileResponse.ok) {
-            showNotification('Student not found. Please check the student ID and try again.', 'danger');
-            return;
-          }
-
-          const studentProfile = await profileResponse.json();
-          
-          // Verify it's actually a student
-          if (studentProfile.userType !== 'student') {
-            showNotification('The provided ID belongs to a teacher, not a student.', 'warning');
-            return;
-          }
-
-          // Assign student to current teacher
-          const currentUser = window.Auth.getCurrentUser();
-          if (currentUser && currentUser.type === 'teacher') {
-            const success = await window.Auth.assignStudentToTeacher(studentId, currentUser.userId);
-            
-            if (success) {
-        // Reload student data
-              await loadStudentData();
-        updateStats();
-        renderStudents();
-        
-        // Close modal
-        const modal = bootstrap.Modal.getInstance(document.getElementById('addStudentModal'));
-        modal.hide();
-        
-              showNotification(`Student "${studentProfile.name}" has been successfully assigned to your class!`, 'success');
-            } else {
-              showNotification('Failed to assign student. The student might already be assigned to another teacher.', 'danger');
-            }
-          } else {
-            showNotification('Error: Current user is not a teacher.', 'danger');
-          }
-        } catch (error) {
-          console.error('Error assigning student:', error);
-          showNotification('Failed to assign student. Please check the student ID and try again.', 'danger');
-        }
-      }
 
       function confirmDeleteStudent(studentId) {
         const student = students.find(s => s.id === studentId);
