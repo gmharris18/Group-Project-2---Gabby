@@ -53,7 +53,8 @@ namespace MinigamesAPI.Controllers
                     return BadRequest(new { message = "Invalid user type. Must be 'student' or 'teacher'." });
                 }
 
-                // Validate ClassID for students
+                // Validate ClassID for students and get teacher info
+                Teacher? teacherWithClass = null;
                 if (request.UserType == "student")
                 {
                     if (string.IsNullOrWhiteSpace(request.ClassID))
@@ -62,7 +63,7 @@ namespace MinigamesAPI.Controllers
                     }
 
                     // Check if the ClassID exists for any teacher
-                    var teacherWithClass = await _context.Teachers.FirstOrDefaultAsync(t => t.ClassID == request.ClassID);
+                    teacherWithClass = await _context.Teachers.FirstOrDefaultAsync(t => t.ClassID == request.ClassID);
                     if (teacherWithClass == null)
                     {
                         return BadRequest(new { message = "Invalid Class ID. Please check with your teacher." });
@@ -102,16 +103,22 @@ namespace MinigamesAPI.Controllers
                     _context.StudentScores.Add(studentScores);
 
                     // Create InClass record to link student with teacher
-                    var teacherWithClass = await _context.Teachers.FirstOrDefaultAsync(t => t.ClassID == request.ClassID);
                     if (teacherWithClass != null)
                     {
                         var inClass = new InClass
                         {
                             StudentID = request.UserId,
                             TeacherID = teacherWithClass.TeacherID,
-                            ClassID = request.ClassID
+                            ClassID = request.ClassID,
+                            CreatedAt = DateTime.UtcNow
                         };
                         _context.InClasses.Add(inClass);
+                    }
+                    else
+                    {
+                        // This should not happen since we validated the ClassID earlier
+                        _logger.LogError($"Failed to find teacher for ClassID: {request.ClassID}");
+                        return BadRequest(new { message = "Error: Could not find teacher for the provided Class ID." });
                     }
 
                     await _context.SaveChangesAsync();

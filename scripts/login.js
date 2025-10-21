@@ -177,7 +177,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     }
   } catch (error) {
     console.error('Registration error:', error);
-    messageDiv.innerHTML = '<div class="alert alert-danger">Unable to connect to server. Please make sure the API is running.</div>';
+    messageDiv.innerHTML = `<div class="alert alert-danger">Registration failed: ${error.message}. Please try again.</div>`;
   }
 });
 
