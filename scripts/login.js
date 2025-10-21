@@ -177,7 +177,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     }
   } catch (error) {
     console.error('Registration error:', error);
-    messageDiv.innerHTML = `<div class="alert alert-danger">Registration failed: ${error.message}. Please try again.</div>`;
+    messageDiv.innerHTML = '<div class="alert alert-danger">Registration failed. Please try again.</div>';
   }
 });
 

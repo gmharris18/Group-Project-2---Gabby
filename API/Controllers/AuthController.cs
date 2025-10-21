@@ -117,7 +117,6 @@ namespace MinigamesAPI.Controllers
                     else
                     {
                         // This should not happen since we validated the ClassID earlier
-                        _logger.LogError($"Failed to find teacher for ClassID: {request.ClassID}");
                         return BadRequest(new { message = "Error: Could not find teacher for the provided Class ID." });
                     }
 
