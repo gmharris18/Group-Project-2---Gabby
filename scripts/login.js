@@ -5,13 +5,19 @@ let currentUserType = 'student';
 function updateUserTypeLabels() {
   const loginIdLabel = document.getElementById('loginIdLabel');
   const signupIdLabel = document.getElementById('signupIdLabel');
+  const classIdField = document.getElementById('classIdField');
+  const signupClassId = document.getElementById('signupClassId');
   
   if (currentUserType === 'student') {
     loginIdLabel.textContent = 'Student ID';
     signupIdLabel.textContent = 'Student ID';
+    classIdField.style.display = 'block';
+    signupClassId.required = true;
   } else {
     loginIdLabel.textContent = 'Teacher ID';
     signupIdLabel.textContent = 'Teacher ID';
+    classIdField.style.display = 'none';
+    signupClassId.required = false;
   }
 }
 
@@ -97,12 +103,23 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
   const name = document.getElementById('signupName').value.trim();
   const id = document.getElementById('signupId').value.trim();
   const password = document.getElementById('signupPassword').value;
+  const classId = currentUserType === 'student' ? document.getElementById('signupClassId').value.trim() : null;
   const messageDiv = document.getElementById('signupMessage');
   
   messageDiv.innerHTML = '<div class="alert alert-info">Creating account...</div>';
   
   if (!name || !id || !password) {
     messageDiv.innerHTML = '<div class="alert alert-danger">Please fill in all fields.</div>';
+    return;
+  }
+  
+  if (currentUserType === 'student' && !classId) {
+    messageDiv.innerHTML = '<div class="alert alert-danger">Class ID is required for student registration.</div>';
+    return;
+  }
+  
+  if (currentUserType === 'student' && classId && !/^\d{8}$/.test(classId)) {
+    messageDiv.innerHTML = '<div class="alert alert-danger">Class ID must be exactly 8 digits.</div>';
     return;
   }
   
@@ -117,7 +134,8 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         userId: id,
         name: name,
         password: password,
-        userType: currentUserType
+        userType: currentUserType,
+        classID: classId
       })
     });
     
@@ -159,7 +177,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     }
   } catch (error) {
     console.error('Registration error:', error);
-    messageDiv.innerHTML = '<div class="alert alert-danger">Unable to connect to server. Please make sure the API is running.</div>';
+    messageDiv.innerHTML = '<div class="alert alert-danger">Registration failed. Please try again.</div>';
   }
 });
 
