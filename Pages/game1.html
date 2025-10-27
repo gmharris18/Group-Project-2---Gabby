@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Math Challenge - Educational Minigames</title>
+    <title>Math Challenge - BridgeEd</title>
 
     <!-- Bootstrap CSS -->
     <link
@@ -18,49 +18,136 @@
     
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <style>
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --glass-bg: rgba(255, 255, 255, 0.1);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.1);
+        --shadow-medium: 0 12px 40px rgba(0, 0, 0, 0.15);
+        --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.2);
+      }
+
+      * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+
+      .game-card {
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 30px;
+        box-shadow: var(--shadow-medium);
+        color: white;
+      }
+
+      .btn-modern {
+        background: var(--primary-gradient);
+        border: none;
+        border-radius: 25px;
+        padding: 12px 30px;
+        color: white;
+        font-weight: 500;
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: var(--shadow-medium);
+        color: white;
+      }
+
+      .navbar-brand {
+        font-weight: 700;
+        font-size: 1.5rem;
+        background: linear-gradient(45deg, #fff, #f8f9fa);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+    </style>
   </head>
   <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: var(--primary-gradient);">
+      <div class="container">
+        <a class="navbar-brand" href="./home.html">BridgeEd</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="./home.html">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="./game.html">Games</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="./ranking.html">Rankings</a>
+            </li>
+            <li class="nav-item" id="profileNavItem" style="display: none;">
+              <a class="nav-link" href="./profile.html" id="profileLink">Profile</a>
+            </li>
+            <li class="nav-item" id="teacherDashboardNavItem" style="display: none;">
+              <a class="nav-link" href="./teacher-dashboard.html" id="teacherDashboardLink">Teacher Dashboard</a>
+            </li>
+            <li class="nav-item" id="adminNavItem" style="display: none;">
+              <a class="nav-link" href="./admin.html" id="adminLink">Admin</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="./login.html" id="authLink">Login</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
 
     <!-- Back Button -->
     <div class="container">
       <div class="d-flex justify-content-end pt-3">
-        <a href="./game.html" class="btn btn-outline-primary">
-          ← Back to Games
+        <a href="./game.html" class="btn btn-outline-primary" style="background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); color: white; border-radius: 25px; padding: 10px 20px; font-weight: 500;">
+          <i class="fas fa-arrow-left me-2"></i>Back to Games
         </a>
       </div>
     </div>
 
     <!-- Main Content -->
-    <div class="container py-5">
-      <!-- Game Header -->
-      <div class="row mb-4">
-        <div class="col-12">
-          <div class="card bg-primary text-white">
-            <div class="card-body py-3">
-              <div class="row align-items-center">
-                <div class="col-md-4">
-                  <h5 class="mb-0">Math Challenge</h5>
-                </div>
-                <div class="col-md-4 text-center">
-                  <h4 class="mb-0" id="timer">2:00</h4>
-                </div>
-                <div class="col-md-4 text-end">
-                  <button class="btn btn-danger btn-sm float-end" id="quitGameBtn">Quit</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Game Area -->
-      <div class="row">
-        <div class="col-12">
-          <div class="card">
-            <div class="card-body">
-              <div id="app">
-                <!-- Game content will be dynamically inserted here -->
-              </div>
+    <div class="container py-4">
+      <div class="game-card">
+        <div id="app">
+          <!-- Game content will be loaded here -->
+          <div class="text-center">
+            <h1 class="display-4 mb-4" style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Math Challenge</h1>
+            <p class="lead mb-4" style="color: rgba(255,255,255,0.9);">Test your math skills with challenging problems!</p>
+            <div class="spinner-border text-light" role="status">
+              <span class="visually-hidden">Loading game...</span>
             </div>
           </div>
         </div>
@@ -81,4 +168,3 @@
     <script src="../scripts/game1.js"></script>
   </body>
 </html>
-

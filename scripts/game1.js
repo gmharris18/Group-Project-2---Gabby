@@ -124,13 +124,6 @@ let timeLeft = 30;
 let timerInterval = null;
 let questionsAnswered = 0;
 
-// Road game state
-let chickenPosition = 0; // 0 = bottom lane, 5 = top lane
-let incorrectAnswers = 0;
-let maxIncorrect = 3;
-let cars = []; // Array to store car positions and animations
-let gameWon = false;
-
 // Initialize game
 function initGame() {
   // Select 10 random questions
@@ -138,12 +131,6 @@ function initGame() {
   currentQuestionIndex = 0;
   score = 0;
   questionsAnswered = 0;
-  
-  // Reset road game state
-  chickenPosition = 0;
-  incorrectAnswers = 0;
-  cars = [];
-  gameWon = false;
   
   // Set up quit button
   const quitBtn = document.getElementById('quitGameBtn');
@@ -207,12 +194,6 @@ function startGame() {
   score = 0;
   questionsAnswered = 0;
   
-  // Reset road game state
-  chickenPosition = 0;
-  incorrectAnswers = 0;
-  cars = [];
-  gameWon = false;
-  
   // Show quit button when starting new game
   const quitBtn = document.getElementById('quitGameBtn');
   if (quitBtn) {
@@ -224,7 +205,7 @@ function startGame() {
 
 // Show question
 function showQuestion() {
-  if (currentQuestionIndex >= selectedQuestions.length || gameWon) {
+  if (currentQuestionIndex >= selectedQuestions.length) {
     endGame();
     return;
   }
@@ -234,14 +215,13 @@ function showQuestion() {
   
   app.innerHTML = `
     <div class="row justify-content-center">
-      <div class="col-lg-10">
+      <div class="col-lg-8">
         <div class="card shadow-lg">
           <div class="card-header bg-primary text-white">
             <div class="d-flex justify-content-between align-items-center">
               <span class="badge bg-light text-primary">Question ${currentQuestionIndex + 1}/10</span>
               <span class="badge bg-warning text-dark" id="timer">Time: 30s</span>
               <span class="badge bg-light text-primary">Score: ${score}</span>
-              <span class="badge bg-danger text-white">Strikes: ${incorrectAnswers}/${maxIncorrect}</span>
             </div>
           </div>
           <div class="card-body p-3">
@@ -249,23 +229,6 @@ function showQuestion() {
               <span class="badge bg-info">${question.category}</span>
             </div>
             <h4 class="mb-3">${question.question}</h4>
-            
-            <!-- Road Game Area -->
-            <div class="road-container mb-4">
-              <div class="road">
-                ${Array.from({length: 6}, (_, laneIndex) => `
-                  <div class="lane ${laneIndex === chickenPosition ? 'chicken-lane' : ''}" data-lane="${laneIndex}">
-                    <div class="lane-content">
-                      ${laneIndex === chickenPosition ? '<div class="chicken">🐔</div>' : ''}
-                      <div class="cars" id="cars-lane-${laneIndex}"></div>
-                    </div>
-                  </div>
-                `).join('')}
-              </div>
-              <div class="road-markings"></div>
-            </div>
-            
-            <!-- Question Options -->
             <div class="d-grid gap-2">
               ${question.options.map((option, index) => `
                 <button class="btn btn-outline-primary text-start answer-btn" 
@@ -281,8 +244,6 @@ function showQuestion() {
     </div>
   `;
 
-  // Start car animations
-  startCarAnimations();
   startTimer();
 }
 
@@ -334,24 +295,6 @@ function selectAnswer(selectedIndex) {
   
   if (isCorrect) {
     score += 10;
-    // Move chicken up
-    chickenPosition = Math.min(chickenPosition + 1, 5);
-    
-    // Check if chicken reached the top (won the game)
-    if (chickenPosition === 5) {
-      gameWon = true;
-    }
-  } else {
-    // Move chicken back and increment strikes
-    chickenPosition = Math.max(chickenPosition - 1, 0);
-    incorrectAnswers++;
-    
-    // Check if too many strikes
-    if (incorrectAnswers >= maxIncorrect) {
-      // Game over - chicken got run over
-      showGameOverScreen('chicken-run-over');
-      return;
-    }
   }
   
   questionsAnswered++;
@@ -464,16 +407,13 @@ async function endGame(quitGame = false) {
   }
   
   const percentage = questionsAnswered > 0 ? (score / (questionsAnswered * 10)) * 100 : 0;
-  let title = quitGame ? 'Game Quit' : (gameWon ? 'Victory! 🎉' : 'Game Over!');
+  let title = quitGame ? 'Game Quit' : 'Game Over!';
   let message = '';
   let badgeClass = '';
   
   if (quitGame) {
     message = 'You quit the game';
     badgeClass = 'bg-secondary';
-  } else if (gameWon) {
-    message = '🐔 The chicken made it across! 🏆';
-    badgeClass = 'bg-success';
   } else if (percentage >= 90) {
     message = 'Outstanding! 🏆';
     badgeClass = 'bg-success';
@@ -561,6 +501,9 @@ async function saveScore(finalScore) {
     const success = await window.GameProgress.saveGameProgress(1, finalScore);
     
     if (success) {
+      // Also save subject-specific performance
+      await saveSubjectPerformance(finalScore);
+      
       messageDiv.innerHTML = `
         <div class="alert alert-success">
           <small>✓ Score saved successfully! Your progress has been recorded.</small>
@@ -579,121 +522,82 @@ async function saveScore(finalScore) {
   }
 }
 
-// Start car animations
-function startCarAnimations() {
-  // Clear existing cars
-  cars = [];
-  
-  // Create cars in random lanes
-  for (let i = 0; i < 3; i++) {
-    const lane = Math.floor(Math.random() * 6);
-    createCar(lane);
-  }
-  
-  // Add new cars periodically
-  setInterval(() => {
-    if (cars.length < 4) {
-      const lane = Math.floor(Math.random() * 6);
-      createCar(lane);
-    }
-  }, 2000);
-}
+// Save subject-specific performance data
+async function saveSubjectPerformance(finalScore) {
+  try {
+    const currentUser = window.Auth.getCurrentUser();
+    if (!currentUser || !currentUser.userId) return;
 
-// Create a car in a specific lane
-function createCar(lane) {
-  const carElement = document.createElement('div');
-  carElement.className = 'car';
-  carElement.innerHTML = '🚗';
-  carElement.style.cssText = `
-    position: absolute;
-    right: -50px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 24px;
-    animation: driveLeft 3s linear forwards;
-    z-index: 2;
-  `;
-  
-  const carsContainer = document.getElementById(`cars-lane-${lane}`);
-  if (carsContainer) {
-    carsContainer.appendChild(carElement);
+    // Calculate performance by category
+    const geometryQuestions = selectedQuestions.filter(q => q.category === 'Geometry');
+    const algebraQuestions = selectedQuestions.filter(q => q.category === 'Algebra');
     
-    // Remove car after animation
-    setTimeout(() => {
-      if (carElement.parentNode) {
-        carElement.parentNode.removeChild(carElement);
-      }
-    }, 3000);
+    const geometryCorrect = geometryQuestions.filter((q, index) => {
+      const questionIndex = selectedQuestions.indexOf(q);
+      return questionIndex !== -1 && questionsAnswered > questionIndex;
+    }).length;
+    
+    const algebraCorrect = algebraQuestions.filter((q, index) => {
+      const questionIndex = selectedQuestions.indexOf(q);
+      return questionIndex !== -1 && questionsAnswered > questionIndex;
+    }).length;
+
+    // Save Geometry performance
+    if (geometryQuestions.length > 0) {
+      const geometryScore = Math.round((geometryCorrect / geometryQuestions.length) * finalScore);
+      const geometryAccuracy = geometryCorrect / geometryQuestions.length;
+      
+      await fetch(`${window.API_URL}/subjectanalytics`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          studentID: currentUser.userId,
+          subject: 'Math',
+          category: 'Geometry',
+          score: geometryScore,
+          accuracy: geometryAccuracy,
+          questionsAnswered: geometryQuestions.length,
+          gameNumber: 1
+        })
+      });
+    }
+
+    // Save Algebra performance
+    if (algebraQuestions.length > 0) {
+      const algebraScore = Math.round((algebraCorrect / algebraQuestions.length) * finalScore);
+      const algebraAccuracy = algebraCorrect / algebraQuestions.length;
+      
+      await fetch(`${window.API_URL}/subjectanalytics`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          studentID: currentUser.userId,
+          subject: 'Math',
+          category: 'Algebra',
+          score: algebraScore,
+          accuracy: algebraAccuracy,
+          questionsAnswered: algebraQuestions.length,
+          gameNumber: 1
+        })
+      });
+    }
+  } catch (error) {
+    console.error('Error saving subject performance:', error);
   }
 }
 
-// Show game over screen for chicken run over
-function showGameOverScreen(reason) {
-  const app = document.getElementById('app');
-  
-  // Hide quit button
-  const quitBtn = document.getElementById('quitGameBtn');
-  if (quitBtn) {
-    quitBtn.style.display = 'none';
-  }
-  
-  app.innerHTML = `
-    <div class="row justify-content-center">
-      <div class="col-lg-8">
-        <div class="card shadow-lg">
-          <div class="card-body text-center p-4">
-            <h1 class="display-5 mb-3">💥 Game Over!</h1>
-            <div class="mb-3">
-              <span class="badge bg-danger fs-6 px-3 py-2">🐔 The chicken got run over!</span>
-            </div>
-            <div class="alert alert-danger mb-3">
-              <h6 class="mb-2">Too many wrong answers!</h6>
-              <p class="mb-0">The chicken couldn't make it across the road safely. Try again!</p>
-            </div>
-            <div class="row g-2 mb-3">
-              <div class="col-md-4">
-                <div class="card bg-primary text-white">
-                  <div class="card-body py-2">
-                    <h4 class="mb-0">${score}</h4>
-                    <small>Total Score</small>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="card bg-danger text-white">
-                  <div class="card-body py-2">
-                    <h4 class="mb-0">${incorrectAnswers}</h4>
-                    <small>Wrong Answers</small>
-                  </div>
-                </div>
-              </div>
-              <div class="col-md-4">
-                <div class="card bg-info text-white">
-                  <div class="card-body py-2">
-                    <h4 class="mb-0">${questionsAnswered}</h4>
-                    <small>Questions</small>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="d-grid gap-2">
-              <button class="btn btn-primary" onclick="startGame()">
-                Try Again
-              </button>
-              <a href="./game.html" class="btn btn-outline-secondary">
-                Back to Games
-              </a>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-  
-  // Save score even on game over
-  saveScore(score);
+// Initialize game function
+function initGame() {
+  console.log('Initializing Math Challenge...');
+  startGame();
 }
+
+// Make initGame globally available
+window.initGame = initGame;
 
 // Initialize game when page loads
 document.addEventListener('DOMContentLoaded', initGame);
-

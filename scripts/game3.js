@@ -496,7 +496,7 @@ async function saveLevelProgress() {
   }
 }
 
-// Auth check
-if (window.Auth) {
-  Auth.requireAuth('./login.html');
-}
+// Auth check - removed to allow direct access to game
+// if (window.Auth) {
+//   Auth.requireAuth('./login.html');
+// }

@@ -6,7 +6,8 @@ async function displayCurrentUserProfile() {
   const notLoggedInMessage = document.getElementById('notLoggedInMessage');
   
   // Check if user is logged in
-  if (!window.Auth.isLoggedIn()) {
+  const currentUser = window.Auth.getCurrentUser();
+  if (!currentUser || !currentUser.userId) {
     profileDisplay.style.display = 'none';
     notLoggedInMessage.style.display = 'block';
     return;
@@ -116,6 +117,24 @@ async function displayCurrentUserProfile() {
 
 // Load profile on page load
 document.addEventListener('DOMContentLoaded', () => {
+  // Check authentication and show appropriate nav items
+  const currentUser = window.Auth.getCurrentUser();
+  if (currentUser) {
+    document.getElementById('authLink').textContent = 'Logout';
+    document.getElementById('authLink').href = '#';
+    document.getElementById('authLink').onclick = function() {
+      window.Auth.logout();
+      window.location.href = './login.html';
+    };
+    
+    if (currentUser.type === 'student') {
+      document.getElementById('profileNavItem').style.display = 'block';
+    } else if (currentUser.type === 'teacher') {
+      document.getElementById('teacherDashboardNavItem').style.display = 'block';
+    } else if (currentUser.type === 'admin') {
+      document.getElementById('adminNavItem').style.display = 'block';
+    }
+  }
+  
   displayCurrentUserProfile();
 });
-

@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Robot Beeper Challenge</title>
+    <title>Robot Beeper Challenge - BridgeEd</title>
 
     <!-- Bootstrap CSS -->
     <link
@@ -19,12 +19,39 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --glass-bg: rgba(255, 255, 255, 0.1);
+        --glass-border: rgba(255, 255, 255, 0.2);
+        --shadow-light: 0 8px 32px rgba(0, 0, 0, 0.1);
+        --shadow-medium: 0 12px 40px rgba(0, 0, 0, 0.15);
+        --shadow-heavy: 0 20px 60px rgba(0, 0, 0, 0.2);
+      }
+
+      * {
+        font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      }
+
+      body {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        margin: 0;
+        padding: 0;
+      }
+
       .game-container {
         max-width: 1400px;
         margin: 0 auto;
-        padding: 10px;
-        height: calc(100vh - 80px);
+        padding: 20px;
+        min-height: calc(100vh - 80px);
         overflow: hidden;
       }
       
@@ -42,6 +69,12 @@
         display: flex;
         flex-direction: column;
         align-items: center;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: var(--shadow-medium);
       }
       
       .left-panel {
@@ -51,6 +84,12 @@
         display: flex;
         flex-direction: column;
         gap: 15px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: var(--shadow-medium);
       }
       
       .controls {
@@ -58,15 +97,37 @@
         max-width: 320px;
         height: 100%;
         overflow-y: auto;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 20px;
+        box-shadow: var(--shadow-medium);
       }
       
       .level-selector {
-        background: #0d6efd;
-        border: 2px solid #0b5ed7;
-        border-radius: 12px;
-        padding: 20px;
-        margin-bottom: 20px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        border: 1px solid var(--glass-border);
+        border-radius: 20px;
+        padding: 30px;
+        margin-bottom: 30px;
         color: white;
+        box-shadow: var(--shadow-medium);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .level-selector::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: var(--primary-gradient);
+        opacity: 0.1;
+        z-index: -1;
       }
       
       .level-buttons {
@@ -100,33 +161,39 @@
       }
       
       .level-btn {
-        background: white;
-        color: #0d6efd;
-        border: 2px solid #dee2e6;
-        border-radius: 12px;
+        background: var(--glass-bg);
+        backdrop-filter: blur(20px);
+        color: white;
+        border: 1px solid var(--glass-border);
+        border-radius: 16px;
         padding: 25px;
         cursor: pointer;
         font-weight: 600;
-        transition: all 0.2s;
+        transition: all 0.3s ease;
         text-align: left;
         min-height: 120px;
         display: flex;
         flex-direction: column;
         justify-content: center;
+        box-shadow: var(--shadow-light);
+        position: relative;
+        overflow: hidden;
       }
       
       .level-btn:hover {
-        background: #e9ecef;
-        color: #0d6efd;
-        border-color: #0d6efd;
-        transform: translateY(-2px);
+        background: rgba(255, 255, 255, 0.2);
+        color: white;
+        border-color: rgba(255, 255, 255, 0.4);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-medium);
       }
       
       .level-btn.active {
-        background: #198754;
+        background: var(--success-gradient);
         color: white;
-        border-color: #198754;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        border-color: rgba(255, 255, 255, 0.5);
+        transform: translateY(-3px);
+        box-shadow: var(--shadow-heavy);
       }
       
       .level-title {
@@ -376,11 +443,54 @@
     </style>
   </head>
   <body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark" style="background: var(--primary-gradient);">
+      <div class="container">
+        <a class="navbar-brand" href="./home.html">BridgeEd</a>
+        <button
+          class="navbar-toggler"
+          type="button"
+          data-bs-toggle="collapse"
+          data-bs-target="#navbarNav"
+          aria-controls="navbarNav"
+          aria-expanded="false"
+          aria-label="Toggle navigation"
+        >
+          <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+          <ul class="navbar-nav ms-auto">
+            <li class="nav-item">
+              <a class="nav-link" href="./home.html">Home</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="./game.html">Games</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="./ranking.html">Rankings</a>
+            </li>
+            <li class="nav-item" id="profileNavItem" style="display: none;">
+              <a class="nav-link" href="./profile.html">Profile</a>
+            </li>
+            <li class="nav-item" id="teacherDashboardNavItem" style="display: none;">
+              <a class="nav-link" href="./teacher-dashboard.html">Teacher Dashboard</a>
+            </li>
+            <li class="nav-item" id="adminNavItem" style="display: none;">
+              <a class="nav-link" href="./admin.html" id="adminLink">Admin</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="./login.html" id="authLink">Login</a>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </nav>
+
     <!-- Back Button -->
     <div class="container">
       <div class="d-flex justify-content-end pt-3">
-        <a href="./game.html" class="btn btn-outline-primary">
-          ← Back to Games
+        <a href="./game.html" class="btn btn-outline-primary" style="background: var(--glass-bg); backdrop-filter: blur(20px); border: 1px solid var(--glass-border); color: white; border-radius: 25px; padding: 10px 20px; font-weight: 500;">
+          <i class="fas fa-arrow-left me-2"></i>Back to Games
         </a>
       </div>
     </div>

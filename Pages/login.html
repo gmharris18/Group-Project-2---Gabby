@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Login - BridgeEd</title>
+    <meta name="description" content="Login or create an account to access BridgeEd's educational minigames and track your learning progress.">
 
     <!-- Bootstrap CSS -->
     <link
@@ -13,14 +14,277 @@
       crossorigin="anonymous"
     />
 
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../styles/main.css" />
+    
+    <style>
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+      }
+      
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+      }
+      
+      .hero-section {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 4rem 0;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
+      }
+      
+      .hero-content {
+        position: relative;
+        z-index: 2;
+      }
+      
+      .auth-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2.5rem;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: none;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .auth-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+      }
+      
+      .auth-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15);
+      }
+      
+      .auth-card.login::before {
+        background: var(--primary-gradient);
+      }
+      
+      .auth-card.signup::before {
+        background: var(--success-gradient);
+      }
+      
+      .form-control {
+        border-radius: 10px;
+        border: 2px solid #e9ecef;
+        padding: 0.75rem 1rem;
+        transition: all 0.3s ease;
+      }
+      
+      .form-control:focus {
+        border-color: #667eea;
+        box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+      }
+      
+      .btn-modern {
+        background: var(--primary-gradient);
+        border: none;
+        color: white;
+        padding: 0.75rem 2rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .btn-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+      }
+      
+      .btn-modern:hover::before {
+        left: 100%;
+      }
+      
+      .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      }
+      
+      .btn-modern.success {
+        background: var(--success-gradient);
+      }
+      
+      .btn-group .btn-check:checked + .btn {
+        background: var(--primary-gradient);
+        border-color: transparent;
+        color: white;
+      }
+      
+      .btn-group .btn {
+        border-radius: 10px;
+        margin: 0 2px;
+        border: 2px solid #e9ecef;
+        transition: all 0.3s ease;
+      }
+      
+      .navbar-modern {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+      
+      .navbar-modern .navbar-brand {
+        font-weight: bold;
+        font-size: 1.5rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .navbar-modern .nav-link {
+        color: #333 !important;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+      
+      .navbar-modern .nav-link:hover {
+        color: #667eea !important;
+      }
+      
+      .section-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        position: relative;
+      }
+      
+      .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background: var(--primary-gradient);
+        border-radius: 2px;
+      }
+      
+      .text-gradient {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .fade-in {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease;
+      }
+      
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      .auth-section {
+        padding: 4rem 0;
+      }
+      
+      .modal-content {
+        border-radius: 20px;
+        border: none;
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      }
+      
+      .modal-header {
+        border-bottom: 1px solid #e9ecef;
+        border-radius: 20px 20px 0 0;
+      }
+      
+      .floating-elements {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        overflow: hidden;
+        z-index: 1;
+      }
+      
+      .floating-element {
+        position: absolute;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 50%;
+        animation: float 6s ease-in-out infinite;
+      }
+      
+      .floating-element:nth-child(1) {
+        width: 60px;
+        height: 60px;
+        top: 20%;
+        left: 10%;
+        animation-delay: 0s;
+      }
+      
+      .floating-element:nth-child(2) {
+        width: 80px;
+        height: 80px;
+        top: 60%;
+        right: 10%;
+        animation-delay: 2s;
+      }
+      
+      .floating-element:nth-child(3) {
+        width: 40px;
+        height: 40px;
+        top: 40%;
+        right: 20%;
+        animation-delay: 4s;
+      }
+      
+      @keyframes float {
+        0%, 100% { transform: translateY(0px) rotate(0deg); }
+        50% { transform: translateY(-20px) rotate(180deg); }
+      }
+    </style>
   </head>
   <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-modern fixed-top">
       <div class="container">
-        <a class="navbar-brand" href="./home.html">BridgeEd</a>
+        <a class="navbar-brand" href="./home.html">
+          <i class="fas fa-graduation-cap me-2"></i>BridgeEd
+        </a>
         <button
           class="navbar-toggler"
           type="button"
@@ -49,6 +313,9 @@
             <li class="nav-item" id="teacherDashboardNavItem" style="display: none;">
               <a class="nav-link" href="./teacher-dashboard.html" id="teacherDashboardLink">Teacher Dashboard</a>
             </li>
+            <li class="nav-item" id="adminNavItem" style="display: none;">
+              <a class="nav-link" href="./admin.html" id="adminLink">Admin</a>
+            </li>
             <li class="nav-item">
               <a class="nav-link active" href="./login.html" id="authLink">Login</a>
             </li>
@@ -57,32 +324,68 @@
       </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="container py-5">
-      <div class="row justify-content-center">
-        <div class="col-lg-10">
-          <h1 class="text-center mb-5">Login or Create Account</h1>
-
-          <!-- User Type Selection -->
-          <div class="text-center mb-4">
-            <div class="btn-group" role="group" aria-label="User type selection">
-              <input type="radio" class="btn-check" name="userType" id="studentType" value="student" checked>
-              <label class="btn btn-outline-primary" for="studentType">Student</label>
-              
-              <input type="radio" class="btn-check" name="userType" id="teacherType" value="teacher">
-              <label class="btn btn-outline-primary" for="teacherType">Teacher</label>
-            </div>
+    <!-- Hero Section -->
+    <section class="hero-section" style="margin-top: 76px;">
+      <div class="floating-elements">
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+        <div class="floating-element"></div>
+      </div>
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 mx-auto text-center hero-content">
+            <h1 class="display-4 fw-bold mb-4 fade-in">
+              <i class="fas fa-user-circle me-3"></i>Join <span class="text-gradient" style="background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; text-shadow: 2px 2px 4px rgba(0,0,0,0.3);">BridgeEd</span>
+            </h1>
+            <p class="lead mb-4 fade-in">
+              Sign in to your account or create a new one to start your STEM learning journey. 
+              Access games, track progress, and compete with other students!
+            </p>
           </div>
+        </div>
+      </div>
+    </section>
 
-          <div class="row g-4">
-            <!-- Login Form -->
-            <div class="col-md-6">
-              <div class="card shadow-sm">
-                <div class="card-body p-4">
-                  <h4 class="card-title mb-4">Login</h4>
+    <!-- Auth Section -->
+    <section class="auth-section">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-10">
+            <!-- User Type Selection -->
+            <div class="text-center mb-5 fade-in">
+              <h3 class="mb-4">Choose Your Account Type</h3>
+              <div class="btn-group" role="group" aria-label="User type selection">
+                <input type="radio" class="btn-check" name="userType" id="studentType" value="student" checked>
+                <label class="btn btn-outline-primary" for="studentType">
+                  <i class="fas fa-user-graduate me-2"></i>Student
+                </label>
+                
+                <input type="radio" class="btn-check" name="userType" id="teacherType" value="teacher">
+                <label class="btn btn-outline-primary" for="teacherType">
+                  <i class="fas fa-chalkboard-teacher me-2"></i>Teacher
+                </label>
+                
+                <input type="radio" class="btn-check" name="userType" id="adminType" value="admin">
+                <label class="btn btn-outline-danger" for="adminType">
+                  <i class="fas fa-user-shield me-2"></i>Admin
+                </label>
+              </div>
+            </div>
+
+            <div class="row g-4">
+              <!-- Login Form -->
+              <div class="col-md-6">
+                <div class="auth-card login fade-in">
+                  <div class="text-center mb-4">
+                    <i class="fas fa-sign-in-alt fa-3x text-primary mb-3"></i>
+                    <h4 class="fw-bold">Welcome Back!</h4>
+                    <p class="text-muted">Sign in to continue your learning journey</p>
+                  </div>
                   <form id="loginForm">
                     <div class="mb-3">
-                      <label for="loginId" class="form-label" id="loginIdLabel">Student ID</label>
+                      <label for="loginId" class="form-label fw-bold" id="loginIdLabel">
+                        <i class="fas fa-id-card me-2"></i>Student ID
+                      </label>
                       <input
                         type="text"
                         class="form-control"
@@ -92,7 +395,9 @@
                       />
                     </div>
                     <div class="mb-3">
-                      <label for="loginPassword" class="form-label">Password</label>
+                      <label for="loginPassword" class="form-label fw-bold">
+                        <i class="fas fa-lock me-2"></i>Password
+                      </label>
                       <input
                         type="password"
                         class="form-control"
@@ -102,27 +407,33 @@
                       />
                     </div>
                     <div class="d-grid">
-                      <button type="submit" class="btn btn-primary">Login</button>
+                      <button type="submit" class="btn btn-modern">
+                        <i class="fas fa-sign-in-alt me-2"></i>Login
+                      </button>
                     </div>
                     <div class="text-center mt-3">
                       <a href="#" class="text-decoration-none" data-bs-toggle="modal" data-bs-target="#resetPasswordModal">
-                        Forgot Password?
+                        <i class="fas fa-key me-1"></i>Forgot Password?
                       </a>
                     </div>
                     <div id="loginMessage" class="mt-3"></div>
                   </form>
                 </div>
               </div>
-            </div>
 
-            <!-- Sign Up Form -->
-            <div class="col-md-6">
-              <div class="card shadow-sm">
-                <div class="card-body p-4">
-                  <h4 class="card-title mb-4">Create Account</h4>
+              <!-- Sign Up Form -->
+              <div class="col-md-6">
+                <div class="auth-card signup fade-in">
+                  <div class="text-center mb-4">
+                    <i class="fas fa-user-plus fa-3x text-success mb-3"></i>
+                    <h4 class="fw-bold">Create Account</h4>
+                    <p class="text-muted">Join BridgeEd and start learning today</p>
+                  </div>
                   <form id="signupForm">
                     <div class="mb-3">
-                      <label for="signupName" class="form-label">Full Name</label>
+                      <label for="signupName" class="form-label fw-bold">
+                        <i class="fas fa-user me-2"></i>Full Name
+                      </label>
                       <input
                         type="text"
                         class="form-control"
@@ -132,7 +443,9 @@
                       />
                     </div>
                     <div class="mb-3">
-                      <label for="signupId" class="form-label" id="signupIdLabel">Student ID</label>
+                      <label for="signupId" class="form-label fw-bold" id="signupIdLabel">
+                        <i class="fas fa-id-card me-2"></i>Student ID
+                      </label>
                       <input
                         type="text"
                         class="form-control"
@@ -143,7 +456,9 @@
                       <div class="form-text">This will be your unique identifier</div>
                     </div>
                     <div class="mb-3">
-                      <label for="signupPassword" class="form-label">Password</label>
+                      <label for="signupPassword" class="form-label fw-bold">
+                        <i class="fas fa-lock me-2"></i>Password
+                      </label>
                       <input
                         type="password"
                         class="form-control"
@@ -152,21 +467,34 @@
                         required
                       />
                     </div>
-                    <div class="mb-3" id="classIdField" style="display: none;">
-                      <label for="signupClassId" class="form-label">Class ID</label>
+                    <div class="mb-3" id="classCodeField">
+                      <label for="classCode" class="form-label fw-bold" id="classCodeLabel">
+                        <i class="fas fa-users me-2"></i>Class Code
+                      </label>
                       <input
                         type="text"
                         class="form-control"
-                        id="signupClassId"
-                        placeholder="Enter your teacher's Class ID"
-                        maxlength="8"
-                        pattern="[0-9]{8}"
-                        title="Class ID must be 8 digits"
+                        id="classCode"
+                        placeholder="Enter your teacher's class code"
                       />
-                      <div class="form-text">Ask your teacher for the 8-digit Class ID</div>
+                      <div class="form-text" id="classCodeHelp">Ask your teacher for the class code to join their class</div>
+                    </div>
+                    <div class="mb-3" id="teacherClassCodeField" style="display: none;">
+                      <label for="teacherClassCode" class="form-label fw-bold">
+                        <i class="fas fa-chalkboard me-2"></i>Create Your Class Code
+                      </label>
+                      <input
+                        type="text"
+                        class="form-control"
+                        id="teacherClassCode"
+                        placeholder="Enter your desired class code"
+                      />
+                      <div class="form-text">Choose a class code to share with your students</div>
                     </div>
                     <div class="d-grid">
-                      <button type="submit" class="btn btn-success">Create Account</button>
+                      <button type="submit" class="btn btn-modern success">
+                        <i class="fas fa-user-plus me-2"></i>Create Account
+                      </button>
                     </div>
                     <div id="signupMessage" class="mt-3"></div>
                   </form>
@@ -176,14 +504,7 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Bootstrap JS bundle -->
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
-      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
-      crossorigin="anonymous"
-    ></script>
+    </section>
 
     <!-- Password Reset Modal -->
     <div class="modal fade" id="resetPasswordModal" tabindex="-1" aria-labelledby="resetPasswordModalLabel" aria-hidden="true">
@@ -246,10 +567,71 @@
       </div>
     </div>
 
+    <!-- Bootstrap JS -->
+    <script
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+      integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz"
+      crossorigin="anonymous"
+    ></script>
+
     <!-- Custom JS -->
     <script src="../scripts/main.js"></script>
     <script src="../scripts/auth.js"></script>
     <script src="../scripts/login.js"></script>
+    
+    <script>
+      // Fade in animation on scroll
+      function fadeInOnScroll() {
+        const elements = document.querySelectorAll('.fade-in');
+        elements.forEach(element => {
+          const elementTop = element.getBoundingClientRect().top;
+          const elementVisible = 150;
+          
+          if (elementTop < window.innerHeight - elementVisible) {
+            element.classList.add('visible');
+          }
+        });
+      }
+
+      // Navbar scroll effect
+      function navbarScrollEffect() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 50) {
+          navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+          navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
+        } else {
+          navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+          navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+        }
+      }
+
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        // Check if user is already logged in
+        const currentUser = window.Auth.getCurrentUser();
+        if (currentUser) {
+          // Redirect based on user type
+          if (currentUser.type === 'student') {
+            window.location.href = './profile.html';
+          } else if (currentUser.type === 'teacher') {
+            window.location.href = './teacher-dashboard.html';
+          } else if (currentUser.type === 'admin') {
+            window.location.href = './admin.html';
+          }
+        }
+
+        // Initialize animations and effects
+        fadeInOnScroll();
+        
+        // Add scroll event listeners
+        window.addEventListener('scroll', function() {
+          fadeInOnScroll();
+          navbarScrollEffect();
+        });
+        
+        // Initial fade in for elements in viewport
+        setTimeout(fadeInOnScroll, 100);
+      });
+    </script>
   </body>
 </html>
-

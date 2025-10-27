@@ -5,19 +5,16 @@ let currentUserType = 'student';
 function updateUserTypeLabels() {
   const loginIdLabel = document.getElementById('loginIdLabel');
   const signupIdLabel = document.getElementById('signupIdLabel');
-  const classIdField = document.getElementById('classIdField');
-  const signupClassId = document.getElementById('signupClassId');
   
   if (currentUserType === 'student') {
     loginIdLabel.textContent = 'Student ID';
     signupIdLabel.textContent = 'Student ID';
-    classIdField.style.display = 'block';
-    signupClassId.required = true;
-  } else {
+  } else if (currentUserType === 'teacher') {
     loginIdLabel.textContent = 'Teacher ID';
     signupIdLabel.textContent = 'Teacher ID';
-    classIdField.style.display = 'none';
-    signupClassId.required = false;
+  } else if (currentUserType === 'admin') {
+    loginIdLabel.textContent = 'Admin ID';
+    signupIdLabel.textContent = 'Admin ID';
   }
 }
 
@@ -26,7 +23,89 @@ document.querySelectorAll('input[name="userType"]').forEach(radio => {
   radio.addEventListener('change', (e) => {
     currentUserType = e.target.value;
     updateUserTypeLabels();
+    
+    // Show/hide class code fields based on user type
+    const classCodeField = document.getElementById('classCodeField');
+    const teacherClassCodeField = document.getElementById('teacherClassCodeField');
+    const classCodeLabel = document.getElementById('classCodeLabel');
+    const classCodeHelp = document.getElementById('classCodeHelp');
+    
+    if (e.target.value === 'student') {
+      // Show student class code field
+      if (classCodeField) {
+        classCodeField.style.display = 'block';
+        classCodeField.querySelector('#classCode').required = true;
+      }
+      if (teacherClassCodeField) {
+        teacherClassCodeField.style.display = 'none';
+        teacherClassCodeField.querySelector('#teacherClassCode').required = false;
+      }
+    } else if (e.target.value === 'teacher') {
+      // Show teacher class code field
+      if (classCodeField) {
+        classCodeField.style.display = 'none';
+        classCodeField.querySelector('#classCode').required = false;
+      }
+      if (teacherClassCodeField) {
+        teacherClassCodeField.style.display = 'block';
+        teacherClassCodeField.querySelector('#teacherClassCode').required = true;
+      }
+    } else if (e.target.value === 'admin') {
+      // Hide both class code fields for admin
+      if (classCodeField) {
+        classCodeField.style.display = 'none';
+        classCodeField.querySelector('#classCode').required = false;
+      }
+      if (teacherClassCodeField) {
+        teacherClassCodeField.style.display = 'none';
+        teacherClassCodeField.querySelector('#teacherClassCode').required = false;
+      }
+    }
   });
+});
+
+// Initialize class code field visibility on page load
+document.addEventListener('DOMContentLoaded', () => {
+  const classCodeField = document.getElementById('classCodeField');
+  const teacherClassCodeField = document.getElementById('teacherClassCodeField');
+  const studentRadio = document.getElementById('studentType');
+  const teacherRadio = document.getElementById('teacherType');
+  
+  if (studentRadio && studentRadio.checked) {
+    // Show student class code field
+    if (classCodeField) {
+      classCodeField.style.display = 'block';
+      classCodeField.querySelector('#classCode').required = true;
+    }
+    if (teacherClassCodeField) {
+      teacherClassCodeField.style.display = 'none';
+      teacherClassCodeField.querySelector('#teacherClassCode').required = false;
+    }
+  } else if (teacherRadio && teacherRadio.checked) {
+    // Show teacher class code field
+    if (classCodeField) {
+      classCodeField.style.display = 'none';
+      classCodeField.querySelector('#classCode').required = false;
+    }
+    if (teacherClassCodeField) {
+      teacherClassCodeField.style.display = 'block';
+      teacherClassCodeField.querySelector('#teacherClassCode').required = true;
+    }
+  }
+  
+  // Check for admin radio button
+  const adminRadio = document.getElementById('adminType');
+  if (adminRadio && adminRadio.checked) {
+    // Hide both class code fields for admin
+    if (classCodeField) {
+      classCodeField.style.display = 'none';
+      classCodeField.querySelector('#classCode').required = false;
+    }
+    if (teacherClassCodeField) {
+      teacherClassCodeField.style.display = 'none';
+      teacherClassCodeField.querySelector('#teacherClassCode').required = false;
+    }
+  }
 });
 
 // Handle login form submission
@@ -40,8 +119,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   messageDiv.innerHTML = '<div class="alert alert-info">Logging in...</div>';
   
   try {
-    // Call API to login
-    const response = await fetch('http://localhost:5000/api/auth/login', {
+    const response = await fetch(`${window.API_URL}/auth/login`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -75,6 +153,9 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       } else if (result.userType === 'teacher') {
         userData.TeacherID = result.userId;
         userData.TeacherName = result.name;
+      } else if (result.userType === 'admin') {
+        userData.AdminID = result.userId;
+        userData.AdminName = result.name;
       }
       
       window.Auth.setCurrentUser(userData);
@@ -83,6 +164,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       setTimeout(() => {
         if (currentUserType === 'teacher') {
           window.location.href = './teacher-dashboard.html';
+        } else if (currentUserType === 'admin') {
+          window.location.href = './admin.html';
         } else {
           window.location.href = './profile.html';
         }
@@ -92,7 +175,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }
   } catch (error) {
     console.error('Login error:', error);
-    messageDiv.innerHTML = '<div class="alert alert-danger">Unable to connect to server. Please make sure the API is running.</div>';
+    messageDiv.innerHTML = '<div class="alert alert-danger">Login failed. Please try again.</div>';
   }
 });
 
@@ -103,7 +186,8 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
   const name = document.getElementById('signupName').value.trim();
   const id = document.getElementById('signupId').value.trim();
   const password = document.getElementById('signupPassword').value;
-  const classId = currentUserType === 'student' ? document.getElementById('signupClassId').value.trim() : null;
+  const classCode = document.getElementById('classCode').value.trim();
+  const teacherClassCode = document.getElementById('teacherClassCode').value.trim();
   const messageDiv = document.getElementById('signupMessage');
   
   messageDiv.innerHTML = '<div class="alert alert-info">Creating account...</div>';
@@ -113,19 +197,28 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
     return;
   }
   
-  if (currentUserType === 'student' && !classId) {
-    messageDiv.innerHTML = '<div class="alert alert-danger">Class ID is required for student registration.</div>';
+  // For students, class code is required
+  if (currentUserType === 'student' && !classCode) {
+    messageDiv.innerHTML = '<div class="alert alert-danger">Please enter a class code to join your teacher\'s class.</div>';
     return;
   }
   
-  if (currentUserType === 'student' && classId && !/^\d{8}$/.test(classId)) {
-    messageDiv.innerHTML = '<div class="alert alert-danger">Class ID must be exactly 8 digits.</div>';
+  // For teachers, teacher class code is required
+  if (currentUserType === 'teacher' && !teacherClassCode) {
+    messageDiv.innerHTML = '<div class="alert alert-danger">Please create a class code for your students.</div>';
     return;
   }
+  
+  // Validate teacher class code is not empty
+  if (currentUserType === 'teacher' && teacherClassCode && teacherClassCode.length === 0) {
+    messageDiv.innerHTML = '<div class="alert alert-danger">Please enter a class code.</div>';
+    return;
+  }
+  
+  // For admins, no class code validation needed
   
   try {
-    // Call API to register
-    const response = await fetch('http://localhost:5000/api/auth/register', {
+    const response = await fetch(`${window.API_URL}/auth/register`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'
@@ -134,8 +227,7 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
         userId: id,
         name: name,
         password: password,
-        userType: currentUserType,
-        classID: classId
+        userType: currentUserType
       })
     });
     
@@ -161,6 +253,9 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
       } else if (result.userType === 'teacher') {
         userData.TeacherID = result.userId;
         userData.TeacherName = result.name;
+      } else if (result.userType === 'admin') {
+        userData.AdminID = result.userId;
+        userData.AdminName = result.name;
       }
       
       window.Auth.setCurrentUser(userData);
@@ -168,6 +263,8 @@ document.getElementById('signupForm').addEventListener('submit', async (e) => {
       setTimeout(() => {
         if (currentUserType === 'teacher') {
           window.location.href = './teacher-dashboard.html';
+        } else if (currentUserType === 'admin') {
+          window.location.href = './admin.html';
         } else {
           window.location.href = './profile.html';
         }
@@ -240,7 +337,7 @@ document.addEventListener('DOMContentLoaded', () => {
       messageDiv.innerHTML = '<div class="alert alert-info">Resetting password...</div>';
       
       try {
-        const response = await fetch('http://localhost:5000/api/auth/reset-password', {
+        const response = await fetch(`${window.API_URL}/auth/reset-password`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -269,19 +366,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       } catch (error) {
         console.error('Error resetting password:', error);
-        messageDiv.innerHTML = '<div class="alert alert-danger">Unable to connect to server. Please try again later.</div>';
+        messageDiv.innerHTML = '<div class="alert alert-danger">Password reset failed. Please try again.</div>';
       }
     });
   }
 });
 
 // Check if already logged in - automatically redirect
-if (window.Auth.isLoggedIn()) {
-  const user = window.Auth.getCurrentUser();
-  if (user && user.type === 'teacher') {
-    window.location.href = './teacher-dashboard.html';
-  } else {
-    window.location.href = './profile.html';
+document.addEventListener('DOMContentLoaded', () => {
+  const currentUser = window.Auth.getCurrentUser();
+  if (currentUser && currentUser.userId && currentUser.type) {
+    if (currentUser.type === 'teacher') {
+      window.location.href = './teacher-dashboard.html';
+    } else if (currentUser.type === 'student') {
+      window.location.href = './profile.html';
+    }
   }
-}
-
+});

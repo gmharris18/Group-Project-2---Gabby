@@ -3,7 +3,8 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Rankings - Educational Minigames</title>
+    <title>Rankings - BridgeEd</title>
+    <meta name="description" content="View student rankings and leaderboards for all educational minigames. Compete with other students and track your progress.">
 
     <!-- Bootstrap CSS -->
     <link
@@ -13,14 +14,262 @@
       crossorigin="anonymous"
     />
 
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
     <!-- Custom CSS -->
     <link rel="stylesheet" href="../styles/main.css" />
+    
+    <style>
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --secondary-gradient: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --warning-gradient: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --gold-gradient: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+        --silver-gradient: linear-gradient(135deg, #c0c0c0 0%, #e8e8e8 100%);
+        --bronze-gradient: linear-gradient(135deg, #cd7f32 0%, #daa520 100%);
+      }
+      
+      .hero-section {
+        background: var(--primary-gradient);
+        color: white;
+        padding: 4rem 0;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .hero-section::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1000 1000"><defs><pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse"><path d="M 50 0 L 0 0 0 50" fill="none" stroke="rgba(255,255,255,0.1)" stroke-width="1"/></pattern></defs><rect width="100%" height="100%" fill="url(%23grid)"/></svg>');
+        opacity: 0.3;
+      }
+      
+      .hero-content {
+        position: relative;
+        z-index: 2;
+      }
+      
+      .ranking-card {
+        background: white;
+        border-radius: 20px;
+        padding: 2rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+        border: none;
+        margin-bottom: 2rem;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .ranking-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 20px 40px rgba(0, 0, 0, 0.15);
+      }
+      
+      .ranking-card::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: var(--primary-gradient);
+      }
+      
+      .ranking-position {
+        font-size: 3rem;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      
+      .ranking-position.gold {
+        background: var(--gold-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .ranking-position.silver {
+        background: var(--silver-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .ranking-position.bronze {
+        background: var(--bronze-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .ranking-position.other {
+        color: #6c757d;
+      }
+      
+      .player-info {
+        text-align: center;
+        margin-bottom: 1rem;
+      }
+      
+      .player-name {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 0.5rem;
+      }
+      
+      .player-score {
+        font-size: 2rem;
+        font-weight: bold;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .trophy-icon {
+        font-size: 2rem;
+        margin-bottom: 1rem;
+      }
+      
+      .trophy-icon.gold { color: #ffd700; }
+      .trophy-icon.silver { color: #c0c0c0; }
+      .trophy-icon.bronze { color: #cd7f32; }
+      
+      .btn-modern {
+        background: var(--primary-gradient);
+        border: none;
+        color: white;
+        padding: 0.75rem 1.5rem;
+        border-radius: 50px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+      
+      .btn-modern::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+        transition: left 0.5s;
+      }
+      
+      .btn-modern:hover::before {
+        left: 100%;
+      }
+      
+      .btn-modern:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+      }
+      
+      .navbar-modern {
+        background: rgba(255, 255, 255, 0.95) !important;
+        backdrop-filter: blur(10px);
+        box-shadow: 0 2px 20px rgba(0, 0, 0, 0.1);
+        transition: all 0.3s ease;
+      }
+      
+      .navbar-modern .navbar-brand {
+        font-weight: bold;
+        font-size: 1.5rem;
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .navbar-modern .nav-link {
+        color: #333 !important;
+        font-weight: 500;
+        transition: color 0.3s ease;
+      }
+      
+      .navbar-modern .nav-link:hover {
+        color: #667eea !important;
+      }
+      
+      .section-title {
+        font-size: 2.5rem;
+        font-weight: bold;
+        margin-bottom: 1rem;
+        position: relative;
+      }
+      
+      .section-title::after {
+        content: '';
+        position: absolute;
+        bottom: -10px;
+        left: 50%;
+        transform: translateX(-50%);
+        width: 60px;
+        height: 4px;
+        background: var(--primary-gradient);
+        border-radius: 2px;
+      }
+      
+      .text-gradient {
+        background: var(--primary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      
+      .fade-in {
+        opacity: 0;
+        transform: translateY(30px);
+        transition: all 0.6s ease;
+      }
+      
+      .fade-in.visible {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      
+      .rankings-section {
+        padding: 4rem 0;
+        background: #f8f9fa;
+      }
+      
+      .coming-soon-card {
+        background: white;
+        border-radius: 20px;
+        padding: 3rem;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        border: 2px dashed #e9ecef;
+      }
+      
+      .coming-soon-icon {
+        font-size: 4rem;
+        color: #6c757d;
+        margin-bottom: 1.5rem;
+      }
+    </style>
   </head>
   <body>
     <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <nav class="navbar navbar-expand-lg navbar-modern fixed-top">
       <div class="container">
-        <a class="navbar-brand" href="./home.html">Educational Minigames</a>
+        <a class="navbar-brand" href="./home.html">
+          <i class="fas fa-graduation-cap me-2"></i>BridgeEd
+        </a>
         <button
           class="navbar-toggler"
           type="button"
@@ -49,6 +298,9 @@
             <li class="nav-item" id="teacherDashboardNavItem" style="display: none;">
               <a class="nav-link" href="./teacher-dashboard.html" id="teacherDashboardLink">Teacher Dashboard</a>
             </li>
+            <li class="nav-item" id="adminNavItem" style="display: none;">
+              <a class="nav-link" href="./admin.html" id="adminLink">Admin</a>
+            </li>
             <li class="nav-item">
               <a class="nav-link" href="./login.html" id="authLink">Login</a>
             </li>
@@ -57,18 +309,98 @@
       </div>
     </nav>
 
-    <!-- Main Content -->
-    <div class="container py-5">
-      <h1 class="text-center mb-5">Game Rankings</h1>
-
-      <div class="row justify-content-center">
-        <div class="col-lg-8">
-          <div class="alert alert-info text-center" role="alert">
-            Rankings will be available soon! Start playing games to compete for the top spot.
+    <!-- Hero Section -->
+    <section class="hero-section" style="margin-top: 76px;">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 mx-auto text-center hero-content">
+            <h1 class="display-4 fw-bold mb-4 fade-in">
+              <i class="fas fa-trophy me-3"></i>Game <span class="text-gradient">Rankings</span>
+            </h1>
+            <p class="lead mb-4 fade-in">
+              Compete with other students and see who's leading the pack! 
+              Track your progress and climb the leaderboards.
+            </p>
           </div>
         </div>
       </div>
-    </div>
+    </section>
+
+    <!-- Rankings Section -->
+    <section class="rankings-section">
+      <div class="container">
+        <div class="row justify-content-center">
+          <div class="col-lg-10">
+            <div class="coming-soon-card fade-in">
+              <div class="coming-soon-icon">
+                <i class="fas fa-trophy"></i>
+              </div>
+              <h2 class="mb-4">Rankings Coming Soon!</h2>
+              <p class="lead mb-4">
+                We're working hard to bring you an amazing leaderboard experience. 
+                Start playing games now to build up your scores and be ready for the competition!
+              </p>
+              <div class="row g-3">
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <i class="fas fa-gamepad fa-2x text-primary mb-3"></i>
+                    <h5>Play Games</h5>
+                    <p class="text-muted">Start playing to build your scores</p>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <i class="fas fa-chart-line fa-2x text-success mb-3"></i>
+                    <h5>Track Progress</h5>
+                    <p class="text-muted">Monitor your improvement over time</p>
+                  </div>
+                </div>
+                <div class="col-md-4">
+                  <div class="text-center">
+                    <i class="fas fa-crown fa-2x text-warning mb-3"></i>
+                    <h5>Compete & Win</h5>
+                    <p class="text-muted">Climb the leaderboards and earn recognition</p>
+                  </div>
+                </div>
+              </div>
+              <div class="mt-4">
+                <a href="./game.html" class="btn btn-modern btn-lg me-3">
+                  <i class="fas fa-play me-2"></i>Start Playing
+                </a>
+                <a href="./login.html" class="btn btn-outline-primary btn-lg">
+                  <i class="fas fa-user-plus me-2"></i>Sign Up
+                </a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Call to Action Section -->
+    <section class="py-5" style="background: var(--primary-gradient); color: white;">
+      <div class="container">
+        <div class="row">
+          <div class="col-lg-8 mx-auto text-center">
+            <h2 class="display-6 fw-bold mb-4 fade-in">
+              Ready to Compete?
+            </h2>
+            <p class="lead mb-4 fade-in">
+              Start playing games now to build up your scores and be ready 
+              when the leaderboards go live!
+            </p>
+            <div class="d-flex gap-3 justify-content-center fade-in">
+              <a href="./game.html" class="btn btn-light btn-lg">
+                <i class="fas fa-gamepad me-2"></i>Play Games
+              </a>
+              <a href="./login.html" class="btn btn-outline-light btn-lg">
+                <i class="fas fa-user-plus me-2"></i>Join Now
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- Bootstrap JS bundle -->
     <script
@@ -80,6 +412,66 @@
     <!-- Custom JS -->
     <script src="../scripts/main.js"></script>
     <script src="../scripts/auth.js"></script>
+    
+    <script>
+      // Fade in animation on scroll
+      function fadeInOnScroll() {
+        const elements = document.querySelectorAll('.fade-in');
+        elements.forEach(element => {
+          const elementTop = element.getBoundingClientRect().top;
+          const elementVisible = 150;
+          
+          if (elementTop < window.innerHeight - elementVisible) {
+            element.classList.add('visible');
+          }
+        });
+      }
+
+      // Navbar scroll effect
+      function navbarScrollEffect() {
+        const navbar = document.querySelector('.navbar');
+        if (window.scrollY > 50) {
+          navbar.style.background = 'rgba(255, 255, 255, 0.98)';
+          navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.15)';
+        } else {
+          navbar.style.background = 'rgba(255, 255, 255, 0.95)';
+          navbar.style.boxShadow = '0 2px 20px rgba(0, 0, 0, 0.1)';
+        }
+      }
+
+      // Initialize on page load
+      document.addEventListener('DOMContentLoaded', function() {
+        // Check authentication and show appropriate nav items
+        const currentUser = window.Auth.getCurrentUser();
+        if (currentUser) {
+          document.getElementById('authLink').textContent = 'Logout';
+          document.getElementById('authLink').href = '#';
+          document.getElementById('authLink').onclick = function() {
+            window.Auth.logout();
+            window.location.href = './login.html';
+          };
+          
+          if (currentUser.type === 'student') {
+            document.getElementById('profileNavItem').style.display = 'block';
+          } else if (currentUser.type === 'teacher') {
+            document.getElementById('teacherDashboardNavItem').style.display = 'block';
+          } else if (currentUser.type === 'admin') {
+            document.getElementById('adminNavItem').style.display = 'block';
+          }
+        }
+
+        // Initialize animations and effects
+        fadeInOnScroll();
+        
+        // Add scroll event listeners
+        window.addEventListener('scroll', function() {
+          fadeInOnScroll();
+          navbarScrollEffect();
+        });
+        
+        // Initial fade in for elements in viewport
+        setTimeout(fadeInOnScroll, 100);
+      });
+    </script>
   </body>
 </html>
-

@@ -5,31 +5,31 @@ window.API_URL = API_URL; // Make globally accessible
 
 // Check if user is logged in
 function isLoggedIn() {
-  return sessionStorage.getItem('currentUser') !== null;
+  const currentUser = localStorage.getItem('bridgeEd_currentUser');
+  return currentUser !== null && currentUser !== '{}';
 }
 
 // Get current user
 function getCurrentUser() {
-  const userStr = sessionStorage.getItem('currentUser');
+  const userStr = localStorage.getItem('bridgeEd_currentUser');
   return userStr ? JSON.parse(userStr) : null;
 }
 
 // Save current user
 function setCurrentUser(user) {
-  sessionStorage.setItem('currentUser', JSON.stringify(user));
+  localStorage.setItem('bridgeEd_currentUser', JSON.stringify(user));
 }
 
 // Logout
 function logout() {
-  sessionStorage.clear();
+  localStorage.removeItem('bridgeEd_currentUser');
   window.location.replace('./login.html');
 }
 
 // Find user by ID (API call)
-async function findUserById(userId, userType = null) {
+async function findUserById(userId) {
   try {
-    const url = userType ? `${API_URL}/profile/${userId}?userType=${userType}` : `${API_URL}/profile/${userId}`;
-    const response = await fetch(url);
+    const response = await fetch(`${API_URL}/profile/${userId}`);
     if (!response.ok) {
       return null;
     }
@@ -159,4 +159,3 @@ window.Auth = {
 
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', updateNavbar);
-
